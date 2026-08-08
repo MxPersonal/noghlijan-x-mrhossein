@@ -1,0 +1,289 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+  --cream: #fff8f0;
+  --cream-deep: #f3e6d8;
+  --ink: #2c2a28;
+  --ink-soft: #5c5752;
+  --teal: #2a9d8f;
+  --teal-deep: #1f7a70;
+  --peach: #e07a5f;
+  --peach-soft: #f2b5a0;
+  --mint: #e8f5f2;
+  --background: var(--cream);
+  --foreground: var(--ink);
+  --site-base: #e8ded1;
+  --site-image-overlay: linear-gradient(
+    rgba(255, 248, 240, 0.12),
+    rgba(247, 239, 230, 0.2)
+  );
+  --site-glow:
+    radial-gradient(ellipse 70% 45% at 10% 5%, rgba(42, 157, 143, 0.12), transparent 62%),
+    radial-gradient(ellipse 65% 45% at 90% 20%, rgba(224, 122, 95, 0.1), transparent 60%);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --glass-surface-bg: rgba(255, 255, 255, 0.18);
+  --glass-soft-bg: rgba(255, 255, 255, 0.1);
+  --glass-input-bg: rgba(255, 255, 255, 0.2);
+  --glass-header-bg: rgba(255, 248, 240, 0.16);
+  --glass-control-bg: rgba(255, 255, 255, 0.32);
+  --glass-shadow: rgba(57, 69, 64, 0.12);
+  --glass-inset: rgba(255, 255, 255, 0.62);
+  --glass-fallback: rgba(255, 252, 248, 0.9);
+  --hero-stage-bg: rgba(255, 255, 255, 0.04);
+  --hero-panel-bg: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.12),
+    rgba(255, 248, 240, 0.03)
+  );
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --cream: #111719;
+  --cream-deep: #202a2c;
+  --ink: #f7f2ec;
+  --ink-soft: #c8c1ba;
+  --teal: #66d4c5;
+  --teal-deep: #91e5d8;
+  --peach: #ff9a7e;
+  --peach-soft: #9c5748;
+  --mint: #173b38;
+  --background: var(--cream);
+  --foreground: var(--ink);
+  --site-base: #101719;
+  --site-image-overlay: linear-gradient(
+    rgba(6, 12, 14, 0.48),
+    rgba(10, 16, 18, 0.7)
+  );
+  --site-glow:
+    radial-gradient(ellipse 70% 45% at 10% 5%, rgba(61, 184, 168, 0.12), transparent 62%),
+    radial-gradient(ellipse 65% 45% at 90% 20%, rgba(224, 122, 95, 0.09), transparent 60%);
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-surface-bg: rgba(8, 14, 16, 0.24);
+  --glass-soft-bg: rgba(8, 14, 16, 0.14);
+  --glass-input-bg: rgba(8, 14, 16, 0.2);
+  --glass-header-bg: rgba(8, 14, 16, 0.26);
+  --glass-control-bg: rgba(11, 20, 22, 0.36);
+  --glass-shadow: rgba(0, 0, 0, 0.34);
+  --glass-inset: rgba(255, 255, 255, 0.14);
+  --glass-fallback: rgba(17, 23, 25, 0.94);
+  --hero-stage-bg: rgba(5, 11, 13, 0.08);
+  --hero-panel-bg: linear-gradient(
+    135deg,
+    rgba(12, 21, 23, 0.15),
+    rgba(8, 14, 16, 0.04)
+  );
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-cream: var(--cream);
+  --color-cream-deep: var(--cream-deep);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-teal: var(--teal);
+  --color-teal-deep: var(--teal-deep);
+  --color-peach: var(--peach);
+  --color-peach-soft: var(--peach-soft);
+  --color-mint: var(--mint);
+  --font-sans: var(--font-vazirmatn);
+  --font-display: var(--font-lalezar);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-vazirmatn), Tahoma, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-lalezar), var(--font-vazirmatn), Tahoma, sans-serif;
+}
+
+.site-bg {
+  isolation: isolate;
+  background: var(--site-base);
+}
+
+.site-bg::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    var(--site-image-overlay),
+    url("/images/site-glass-background.webp");
+  background-position: center;
+  background-size: cover;
+}
+
+.site-bg::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: var(--site-glow);
+}
+
+.glass-surface,
+.glass-soft,
+.glass-input,
+.glass-header,
+.glass-hero {
+  border: 1px solid var(--glass-border);
+  -webkit-backdrop-filter: blur(3px) saturate(112%);
+  backdrop-filter: blur(3px) saturate(112%);
+}
+
+.glass-surface {
+  background: var(--glass-surface-bg);
+  box-shadow:
+    0 18px 45px var(--glass-shadow),
+    inset 0 1px 0 var(--glass-inset);
+}
+
+.glass-soft {
+  background: var(--glass-soft-bg);
+  box-shadow:
+    0 10px 28px var(--glass-shadow),
+    inset 0 1px 0 var(--glass-inset);
+}
+
+.glass-input {
+  background: var(--glass-input-bg);
+  box-shadow: inset 0 1px 0 var(--glass-inset);
+}
+
+.glass-header {
+  background: var(--glass-header-bg);
+  box-shadow: 0 8px 30px var(--glass-shadow);
+}
+
+.hero-stage {
+  border: 1px solid var(--glass-border);
+  background: var(--hero-stage-bg);
+  box-shadow:
+    0 28px 75px var(--glass-shadow),
+    inset 0 1px 0 var(--glass-inset);
+  -webkit-backdrop-filter: blur(4px) saturate(115%);
+  backdrop-filter: blur(4px) saturate(115%);
+}
+
+.glass-hero {
+  background: var(--hero-panel-bg);
+  border-color: var(--glass-border);
+  box-shadow:
+    0 24px 60px var(--glass-shadow),
+    inset 0 1px 0 var(--glass-inset);
+  -webkit-backdrop-filter: blur(3px) saturate(112%);
+  backdrop-filter: blur(3px) saturate(112%);
+}
+
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .glass-surface,
+  .glass-soft,
+  .glass-input,
+  .glass-header,
+    .glass-hero,
+    .hero-stage {
+    background: var(--glass-fallback);
+  }
+}
+
+.admin-page :where(input:not([type="checkbox"]):not([type="radio"]), textarea, select) {
+  background-color: var(--glass-control-bg);
+  color: var(--ink);
+}
+
+.admin-page :where(input, textarea)::placeholder {
+  color: var(--ink-soft);
+  opacity: 0.72;
+}
+
+.admin-page option {
+  background-color: var(--cream);
+  color: var(--ink);
+}
+
+body,
+.site-bg::before,
+.glass-surface,
+.glass-soft,
+.glass-input,
+.glass-header,
+.glass-hero,
+.hero-stage {
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body,
+  .site-bg::before,
+  .glass-surface,
+  .glass-soft,
+  .glass-input,
+  .glass-header,
+  .glass-hero,
+  .hero-stage {
+    transition: none;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes soft-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.7s ease-out both;
+}
+
+.animate-fade-up-delay {
+  animation: fade-up 0.7s ease-out 0.15s both;
+}
+
+.animate-soft-pop {
+  animation: soft-pop 0.5s ease-out both;
+}
+
+.product-card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(44, 42, 40, 0.08);
+}
+
+.cart-badge {
+  transition: transform 0.2s ease;
+}
+
+.cart-badge.bump {
+  transform: scale(1.25);
+}

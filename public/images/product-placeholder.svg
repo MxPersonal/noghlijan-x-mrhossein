@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-labelledby="title description">
+  <title id="title">تصویر محصول ثبت نشده است</title>
+  <desc id="description">جایگاه موقت تصویر محصول</desc>
+  <rect width="800" height="1000" fill="#e8f4ef"/>
+  <rect x="190" y="260" width="420" height="350" rx="32" fill="#fff" opacity=".75"/>
+  <circle cx="310" cy="370" r="55" fill="#9bc9bc"/>
+  <path d="M220 570 350 430l90 90 65-70 75 120H220Z" fill="#65a998"/>
+  <text x="400" y="710" fill="#377f71" font-family="Tahoma, Arial, sans-serif" font-size="34" text-anchor="middle" direction="rtl">تصویر محصول ثبت نشده</text>
+</svg>

@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  FAILED
+  SHIPPED
+}
+
+enum ExternalProvider {
+  TOROB
+  DIGIKALA
+  INSTAGRAM
+}
+
+model StoreIntegration {
+  id              String           @id @default(cuid())
+  provider        ExternalProvider @unique
+  encryptedConfig String
+  accountId       String?
+  accountLabel    String?
+  connectedAt     DateTime?
+  tokenExpiresAt  DateTime?
+  lastError       String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+model Product {
+  id               String            @id @default(cuid())
+  name             String
+  slug             String            @unique
+  description      String
+  price            Int
+  imageUrl         String
+  category         String
+  ageGroup         String
+  gender           String
+  stock            Int               @default(0)
+  isActive         Boolean           @default(true)
+  seoTitle         String?
+  seoDescription   String?
+  seoKeywords      String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  orderItems       OrderItem[]
+  externalProducts ExternalProduct[]
+  images           ProductImage[]
+  tags             ProductTag[]
+  labels           ProductLabel[]
+
+  @@index([category])
+  @@index([ageGroup])
+  @@index([gender])
+  @@index([isActive])
+}
+
+model ProductImage {
+  id        String   @id @default(cuid())
+  productId String
+  url       String
+  altText   String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, url])
+  @@index([productId, sortOrder])
+}
+
+model ProductTag {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  products Product[]
+}
+
+model ProductLabel {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  products Product[]
+}
+
+model ExternalProduct {
+  id         String           @id @default(cuid())
+  provider   ExternalProvider
+  externalId String
+  productId  String
+  product    Product          @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  @@unique([provider, externalId])
+  @@index([productId])
+}
+
+model Order {
+  id           String      @id @default(cuid())
+  status       OrderStatus @default(PENDING)
+  total        Int
+  customerName String
+  phone        String
+  address      String
+  authority    String?
+  refId        String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  items        OrderItem[]
+
+  @@index([status])
+  @@index([authority])
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int
+  unitPrice Int
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+}
