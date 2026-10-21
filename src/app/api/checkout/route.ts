@@ -130,9 +130,16 @@ export async function POST(req: Request) {
     });
   }
 
-  const appUrl =
-    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ??
-    "http://localhost:3000";
+  // Use the actual HTTPS storefront origin when no canonical URL is configured.
+  // Production payment callbacks must never point to localhost.
+  const configuredUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  const fallbackOrigin = new URL(req.url).origin;
+  const appUrl = configuredUrl && /^https:\/\//i.test(configuredUrl)
+    ? configuredUrl.replace(/\/$/, "")
+    : fallbackOrigin;
+  if (process.env.NODE_ENV === "production" && !appUrl.startsWith("https://")) {
+    return NextResponse.json({ error: "آدرس امن بازگشت پرداخت تنظیم نشده است" }, { status: 503 });
+  }
 
   if (!isZarinpalConfigured()) {
     await prisma.$transaction(async (tx) => {
