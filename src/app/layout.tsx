@@ -22,15 +22,15 @@ const lalezar = Lalezar({
 export const metadata: Metadata = {
   metadataBase: getSiteUrl(),
   title: {
-    default: "کلوث استور | لباس بچه‌گانه",
-    template: "%s | کلوث استور",
+    default: "نقلی‌جان | لباس بچه‌گانه",
+    template: "%s | نقلی‌جان",
   },
-  description: "فروشگاه لباس بچه‌گانه کلوث استور — نرم، شاد و باکیفیت",
+  description: "فروشگاه پوشاک بچه‌گانه نقلی‌جان؛ لباس‌های شاد، لطیف و دوست‌داشتنی برای کودکان.",
   openGraph: {
     type: "website",
     locale: "fa_IR",
-    title: "کلوث استور | لباس بچه‌گانه",
-    description: "فروشگاه لباس بچه‌گانه کلوث استور — نرم، شاد و باکیفیت",
+    title: "نقلی‌جان | لباس بچه‌گانه",
+    description: "فروشگاه لباس بچه‌گانه نقلی‌جان — نرم، شاد و باکیفیت",
   },
 };
 
