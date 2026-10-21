@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { ProductCard } from "@/components/ProductCard";
+import { HomeScrollExperience } from "@/components/HomeScrollExperience";
 
 // Each theme has its own local artwork; theme-init.js sets data-theme before paint.
 const HERO_IMAGE_LIGHT = "/images/noghlijan-hero-high-quality.webp";
@@ -24,10 +25,11 @@ export default async function HomePage() {
   });
 
   return (
-    <div>
-      <section className="home-scene relative isolate overflow-hidden" aria-labelledby="home-hero-title">
-        <div className="relative mx-auto flex max-w-7xl flex-col px-4 pb-10 pt-2 sm:px-6 lg:min-h-[680px] lg:flex-row lg:items-center lg:gap-3 lg:pb-12 lg:pt-3">
-          <div className="relative z-10 order-2 mx-auto max-w-lg py-5 text-center lg:order-1 lg:mx-0 lg:w-[43%] lg:shrink-0 lg:py-10 lg:pr-7 lg:text-right">
+    <div className="home-fullpage">
+      <HomeScrollExperience />
+      <section data-home-panel className="home-scene home-panel relative isolate overflow-hidden" aria-labelledby="home-hero-title">
+        <div className="relative mx-auto flex max-w-7xl flex-col px-4 pb-10 pt-2 sm:px-6 lg:min-h-0 lg:flex-row lg:items-center lg:gap-3 lg:pb-12 lg:pt-3">
+          <div data-home-reveal className="relative z-10 order-2 mx-auto max-w-lg py-5 text-center lg:order-1 lg:mx-0 lg:w-[43%] lg:shrink-0 lg:py-10 lg:pr-7 lg:text-right">
             <p className="home-kicker inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold">
               <span aria-hidden="true">✿</span> قصهٔ رنگی کوچولوها
             </p>
@@ -50,7 +52,7 @@ export default async function HomePage() {
               </Link>
             </div>
           </div>
-          <div className="relative order-1 mx-auto w-full max-w-[660px] lg:order-2 lg:-mr-12 lg:w-[61%] lg:max-w-none lg:shrink-0">
+          <div data-home-reveal className="relative order-1 mx-auto w-full max-w-[660px] lg:order-2 lg:-mr-12 lg:w-[61%] lg:max-w-none lg:shrink-0">
             <Image
               src={HERO_IMAGE_LIGHT}
               alt="پوشاک بچه‌گانه نقلی‌جان؛ دختر و پسربچه در صحنه‌ای شاد و پاستلی"
@@ -73,14 +75,14 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6" aria-labelledby="categories-title">
-        <div className="mb-7">
+      <section data-home-panel className="home-panel mx-auto w-full max-w-6xl px-4 py-16 sm:px-6" aria-labelledby="categories-title">
+        <div data-home-reveal className="mb-7">
           <p className="text-sm font-semibold text-teal-deep">از کجا شروع کنیم؟</p>
           <h2 id="categories-title" className="mt-1 font-display text-4xl text-ink">دسته‌بندی‌های دوست‌داشتنی</h2>
         </div>
         <div className="grid gap-4 sm:grid-cols-3">
           {categories.map(({ title, description, href, emoji, color }) => (
-            <Link key={href} href={href} className="pastel-category group flex items-center gap-4 rounded-[2rem] p-5 sm:flex-col sm:p-7 sm:text-center">
+            <Link key={href} href={href} data-home-reveal className="pastel-category group flex items-center gap-4 rounded-[2rem] p-5 sm:flex-col sm:p-7 sm:text-center">
               <span aria-hidden="true" className={`grid size-20 shrink-0 place-items-center rounded-[1.7rem] text-4xl sm:size-24 ${color}`}>{emoji}</span>
               <div>
                 <h3 className="font-display text-3xl text-ink">{title}</h3>
@@ -92,8 +94,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 pb-20 sm:px-6" aria-labelledby="new-products-title">
-        <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+      <section data-home-panel className="home-panel mx-auto w-full max-w-6xl px-4 pb-20 pt-12 sm:px-6" aria-labelledby="new-products-title">
+        <div data-home-reveal className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-sm font-semibold text-teal-deep">تازه رسیدن!</p>
             <h2 id="new-products-title" className="mt-1 font-display text-4xl text-ink">نقلی‌های تازه</h2>
@@ -102,11 +104,11 @@ export default async function HomePage() {
           <Link href="/shop" className="rounded-full border border-teal/30 px-5 py-2.5 text-sm font-semibold text-teal-deep transition hover:bg-cream-deep">دیدن همهٔ محصولات ←</Link>
         </div>
         {featured.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
+          <div data-home-reveal className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
             {featured.map((product) => <ProductCard key={product.id} {...product} />)}
           </div>
         ) : (
-          <div className="pastel-feature rounded-[2rem] p-10 text-center text-ink-soft">محصولات جدید به‌زودی اینجا نمایش داده می‌شوند.</div>
+          <div data-home-reveal className="pastel-feature rounded-[2rem] p-10 text-center text-ink-soft">محصولات جدید به‌زودی اینجا نمایش داده می‌شوند.</div>
         )}
       </section>
     </div>

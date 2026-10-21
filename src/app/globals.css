@@ -399,3 +399,72 @@ body,
   .animate-fade-up, .animate-fade-up-delay, .animate-soft-pop { animation: none; }
   .product-card:hover { transform: none; }
 }
+
+/* Scoped full-screen storytelling UX: never affects shop, cart, or admin routes. */
+.home-panel { scroll-margin-top: var(--home-header-height, 0px); }
+.home-fullpage { position: relative; }
+@media (min-width: 1024px) {
+  .home-header { position: sticky; top: 0; z-index: 45; }
+  .home-panel {
+    min-height: calc(100svh - var(--home-header-height, 92px));
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .home-scene .home-artwork {
+    max-height: min(70svh, 740px);
+    width: auto;
+    max-width: 100%;
+    margin-inline: auto;
+    object-fit: contain;
+  }
+}
+@media (max-width: 1023px) and (min-height: 700px) and (prefers-reduced-motion: no-preference) {
+  html:has(.home-fullpage) { scroll-snap-type: y proximity; }
+  .home-panel { scroll-snap-align: start; }
+}
+.home-step-nav {
+  position: fixed;
+  z-index: 42;
+  top: 50%;
+  left: clamp(12px, 2.2vw, 32px);
+  transform: translateY(-50%);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  padding: 16px 10px;
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  background: var(--glass-header-bg);
+  box-shadow: 0 12px 32px var(--glass-shadow);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+.home-step-counter {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  writing-mode: vertical-rl;
+}
+.home-step-dot {
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  border: 2px solid var(--teal);
+  background: transparent;
+  cursor: pointer;
+  transition: background 220ms ease, height 220ms ease, transform 220ms ease;
+}
+.home-step-dot.is-active {
+  height: 31px;
+  background: var(--teal);
+}
+.home-step-dot:hover { transform: scale(1.2); }
+@media (min-width: 1024px) and (min-height: 760px) and (pointer: fine) {
+  .home-step-nav { display: flex; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-step-dot { transition: none; }
+}
