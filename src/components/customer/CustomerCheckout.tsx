@@ -1,0 +1,127 @@
+"use client";
+
+import { useState, type FormEvent } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useCart } from "@/context/cart";
+import { formatPrice } from "@/lib/format";
+
+type Customer = { fullName:string; mobile:string; address:string|null; postalCode:string|null; phoneVerified:boolean };
+
+export function CustomerCheckout({ customer }: { customer: Customer }) {
+  const { items, total, clearCart } = useCart();
+  const router=useRouter();
+  const [address,setAddress]=useState(customer.address ?? "");
+  const [postalCode,setPostalCode]=useState(customer.postalCode ?? "");
+  const [other,setOther]=useState(false);
+  const [recipientName,setRecipientName]=useState("");
+  const [recipientPhone,setRecipientPhone]=useState("");
+  const [saveAddress,setSaveAddress]=useState(true);
+  const [loading,setLoading]=useState(false);
+  const [error,setError]=useState("");
+
+  async function submit(event:FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (loading) return;
+    setError("");setLoading(true);
+    try {
+      const res=await fetch("/api/checkout", {
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          address,postalCode,recipientIsOther:other,
+          recipientName:other?recipientName:undefined,
+          recipientPhone:other?recipientPhone:undefined,
+          saveAddress,
+          items:items.map(i=>({productId:i.productId,variantId:i.variantId,quantity:i.quantity})),
+        }),
+      });
+      const data=await res.json() as {error?:string;paymentUrl?:string;orderId?:string;demo?:boolean};
+      if (!res.ok) throw Error(data.error || "ثبت سفارش ناموفق بود");
+      if (data.paymentUrl) {
+        clearCart();
+        window.location.assign(data.paymentUrl);
+        return;
+      }
+      if (data.demo && data.orderId) {
+        clearCart();
+        router.push("/payment/verify?demo=1&orderId="+encodeURIComponent(data.orderId));
+        return;
+      }
+      throw Error("پاسخ نامعتبر از سرور");
+    } catch(e) {setError(e instanceof Error?e.message:"خطا در اتصال");setLoading(false);}
+  }
+
+  if (!items.length) return <div className="customer-empty-checkout mx-auto max-w-3xl px-4 py-24 text-center">
+    <span aria-hidden="true">✿</span><h1>سبدت هنوز خالیه!</h1><p>اول لباس‌های قشنگ رو انتخاب کن.</p>
+    <Link href="/shop">گشت‌وگذار در فروشگاه ←</Link>
+  </div>;
+
+  return (
+    <div className="customer-checkout-page mx-auto max-w-6xl px-4 py-11 sm:px-6">
+      <div className="customer-checkout-heading">
+        <p className="customer-eyebrow">✳ SECURE CHECKOUT</p>
+        <h1>تسویه‌حساب <span>نقلی‌جان</span></h1>
+        <p>اطلاعات ارسال را کامل کن تا سفارش بدون اشتباه به دست گیرنده برسد.</p>
+      </div>
+      <div className="customer-checkout-grid">
+        <form onSubmit={submit} className="customer-panel customer-shipping-form">
+          <h2>اطلاعات تحویل سفارش</h2>
+          <p className="customer-hint">اطلاعات حساب شما فقط برای سفارش مربوط به خودتان استفاده می‌شود.</p>
+          <div className="customer-shipping-fixed">
+            <span>خریدار: <strong>{customer.fullName}</strong></span>
+            <span>موبایل: <strong dir="ltr">{customer.mobile}</strong></span>
+          </div>
+          <label>کد پستی *
+            <input required inputMode="numeric" minLength={10} maxLength={10} value={postalCode}
+              onChange={e=>setPostalCode(e.target.value)} placeholder="۱۰ رقم کد پستی" dir="ltr" />
+          </label>
+          <label>آدرس کامل *
+            <textarea required minLength={12} maxLength={700} rows={5}
+              value={address} onChange={e=>setAddress(e.target.value)}
+              placeholder="استان، شهر، خیابان، کوچه، پلاک، طبقه و واحد" />
+          </label>
+          <label className="customer-check-choice">
+            <input type="checkbox" checked={saveAddress} onChange={e=>setSaveAddress(e.target.checked)} />
+            این آدرس و کد پستی در حسابم ذخیره شود.
+          </label>
+          <div className="customer-recipient-group">
+            <label className="customer-check-choice customer-recipient-switch">
+              <input type="checkbox" checked={other} onChange={e=>setOther(e.target.checked)} />
+              تحویل‌گیرنده شخص دیگری است
+            </label>
+            {other && <div className="customer-recipient-inputs">
+              <label>نام و نام خانوادگی تحویل‌گیرنده *
+                <input required minLength={3} maxLength={120} autoComplete="off"
+                  value={recipientName} onChange={e=>setRecipientName(e.target.value)}
+                  placeholder="نام گیرنده" />
+              </label>
+              <label>شماره تماس تحویل‌گیرنده *
+                <input required type="tel" inputMode="tel" autoComplete="off" dir="ltr"
+                  value={recipientPhone} onChange={e=>setRecipientPhone(e.target.value)}
+                  placeholder="09xxxxxxxxx" />
+              </label>
+            </div>}
+          </div>
+          {!customer.phoneVerified && <p className="customer-auth-notice">
+            شمارهٔ موبایل حساب هنوز از طریق پیامک تأیید نشده است.
+          </p>}
+          {error && <p role="alert" className="customer-error">{error}</p>}
+          <button disabled={loading} type="submit" className="customer-primary-button">
+            {loading?"در حال ثبت...":"تأیید آدرس و ادامهٔ پرداخت"} <span aria-hidden="true">←</span>
+          </button>
+        </form>
+        <aside className="customer-panel customer-checkout-summary">
+          <p className="customer-eyebrow">YOUR LITTLE BAG</p>
+          <h2>خلاصهٔ سبد خرید</h2>
+          <ul>{items.map((item,i)=><li key={item.productId+":"+(item.variantId??"")+i}>
+            <div><strong>{item.name}</strong>{item.variantLabel && <small>{item.variantLabel}</small>}
+              <span>تعداد: {item.quantity.toLocaleString("fa-IR")}</span></div>
+            <b>{formatPrice(item.price*item.quantity)}</b>
+          </li>)}</ul>
+          <div className="customer-order-total"><span>جمع کل</span><strong>{formatPrice(total)}</strong></div>
+          <Link href="/cart">ویرایش سبد خرید ←</Link>
+        </aside>
+      </div>
+    </div>
+  );
+}

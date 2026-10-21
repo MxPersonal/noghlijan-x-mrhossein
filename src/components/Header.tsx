@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCart } from "@/context/cart";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { CustomerAvatarMenu } from "@/components/CustomerAvatarMenu";
 import { BrandWordmark } from "@/components/BrandWordmark";
 
 const links = [
@@ -58,6 +59,7 @@ export function Header() {
         </nav>
         <div className="flex items-center gap-2">
           <ThemeToggle />
+          <CustomerAvatarMenu />
           <form action="/shop" method="get" role="search" className="glass-input hidden items-center rounded-full focus-within:ring-2 focus-within:ring-teal/30 lg:flex">
             <label htmlFor="site-search" className="sr-only">جستجو در محصولات</label>
             <input id="site-search" name="q" type="search" maxLength={80} placeholder="دنبال چی می‌گردی؟" className="w-40 bg-transparent px-4 py-2.5 text-sm text-ink outline-none placeholder:text-ink-soft/75 xl:w-52" />

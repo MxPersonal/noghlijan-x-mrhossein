@@ -132,7 +132,14 @@ model Order {
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
   items        OrderItem[]
+  customerId   String?
+  customer     Customer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  postalCode   String?
+  recipientIsOther Boolean @default(false)
+  recipientName String?
+  recipientPhone String?
 
+  @@index([customerId])
   @@index([status])
   @@index([authority])
 }
@@ -157,4 +164,41 @@ model SiteContent {
   data      Json     @default("{}")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Customer {
+  id               String   @id @default(cuid())
+  fullName         String
+  mobile           String   @unique
+  nationalIdDigest String   @unique
+  nationalIdLast4  String
+  passwordHash     String
+  email            String?
+  avatarUrl        String?
+  phoneVerified    Boolean  @default(false)
+  postalCode       String?
+  address          String?
+  failedLogins     Int      @default(0)
+  lockedUntil      DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  sessions         CustomerSession[]
+  orders           Order[]
+}
+
+model CustomerSession {
+  id         String   @id
+  customerId String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@index([expiresAt])
+}
+
+model CustomerAuthThrottle {
+  id         String   @id
+  attempts   Int      @default(0)
+  windowEnds DateTime
 }

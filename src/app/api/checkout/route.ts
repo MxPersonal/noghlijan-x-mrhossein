@@ -2,32 +2,43 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isZarinpalConfigured, requestPayment } from "@/lib/zarinpal";
 import { variantLabel } from "@/lib/product-variants";
+import { getCustomer, normalizeMobile, normalizePostal, sameOrigin } from "@/lib/customer-auth";
 
 type Body = {
-  customerName?: string;
-  phone?: string;
   address?: string;
+  postalCode?: string;
+  recipientIsOther?: boolean;
+  recipientName?: string;
+  recipientPhone?: string;
+  saveAddress?: boolean;
   items?: { productId: string; variantId?: string; quantity: number }[];
 };
 
 export async function POST(req: Request) {
+  if (!sameOrigin(req)) return NextResponse.json({ error: "درخواست نامعتبر است" }, { status: 403 });
+  const customer = await getCustomer();
+  if (!customer) return NextResponse.json({ error: "ابتدا وارد حساب خود شوید" }, { status: 401 });
   let body: Body;
-  try {
-    body = (await req.json()) as Body;
-  } catch {
-    return NextResponse.json({ error: "درخواست نامعتبر" }, { status: 400 });
-  }
+  try { body = await req.json() as Body; }
+  catch { return NextResponse.json({ error: "درخواست نامعتبر" }, { status: 400 }); }
 
-  const customerName = body.customerName?.trim();
-  const phone = body.phone?.trim();
-  const address = body.address?.trim();
+  const customerName = customer.fullName;
+  const phone = customer.mobile;
+  const address = typeof body.address === "string" ? body.address.trim() : "";
+  const postalCode = normalizePostal(body.postalCode);
+  const recipientIsOther = body.recipientIsOther === true;
+  const recipientName = recipientIsOther && typeof body.recipientName === "string" ? body.recipientName.trim() : null;
+  const recipientPhone = recipientIsOther ? normalizeMobile(body.recipientPhone) : null;
   const items = body.items ?? [];
-
-  if (!customerName || !phone || !address || !Array.isArray(items) || items.length === 0 || items.length > 50) {
-    return NextResponse.json(
-      { error: "لطفاً همه فیلدها را پر کنید" },
-      { status: 400 },
-    );
+  if (address.length < 12 || address.length > 700 || !postalCode ||
+      (recipientIsOther && (!recipientName || recipientName.length < 3 ||
+        recipientName.length > 120 || !recipientPhone)) ||
+      !Array.isArray(items) || items.length === 0 || items.length > 50) {
+    return NextResponse.json({ error: "آدرس کامل، کد پستی ۱۰ رقمی و در صورت نیاز اطلاعات گیرنده الزامی و معتبرند" }, { status: 422 });
+  }
+  // Never mark production purchases as paid when a payment gateway is missing.
+  if (process.env.NODE_ENV === "production" && !isZarinpalConfigured()) {
+    return NextResponse.json({ error: "درگاه پرداخت فروشگاه هنوز فعال نشده است؛ لطفاً بعداً تلاش کنید." }, { status: 503 });
   }
 
   // Prices, availability, and variant ownership are always verified server-side.
@@ -101,11 +112,23 @@ export async function POST(req: Request) {
       customerName,
       phone,
       address,
+      postalCode,
+      recipientIsOther,
+      recipientName,
+      recipientPhone,
+      customerId: customer.id,
       total,
       status: "PENDING",
       items: { create: orderItems },
     },
   });
+
+  if (body.saveAddress === true) {
+    await prisma.customer.update({
+      where: { id: customer.id },
+      data: { address, postalCode },
+    });
+  }
 
   const appUrl =
     process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ??

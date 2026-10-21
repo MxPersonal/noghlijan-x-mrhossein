@@ -11,6 +11,10 @@ type Order = {
   phone: string;
   address: string;
   refId: string | null;
+  postalCode: string | null;
+  recipientIsOther: boolean;
+  recipientName: string | null;
+  recipientPhone: string | null;
   createdAt: string;
   items: { quantity: number; unitPrice: number; variantLabel: string | null; product: { name: string } }[];
 };
@@ -124,6 +128,10 @@ export function AdminOrders({ initial }: { initial: Order[] }) {
                   <div className="admin-order-address">
                     <span className="admin-order-small-label">آدرس ارسال</span>
                     <p>{order.address}</p>
+                    {order.postalCode && <p>کد پستی: <span dir="ltr">{order.postalCode}</span></p>}
+                    {order.recipientIsOther && <p className="mt-1 font-semibold text-ink">
+                      تحویل‌گیرنده: {order.recipientName} · <span dir="ltr">{order.recipientPhone}</span>
+                    </p>}
                   </div>
                 </div>
                 <div className="admin-order-items">
