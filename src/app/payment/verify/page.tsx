@@ -125,18 +125,34 @@ export default async function PaymentVerifyPage({
     );
   }
 
-  await prisma.$transaction(async (tx) => {
-    for (const item of order.items) {
-      await tx.product.update({
-        where: { id: item.productId },
-        data: { stock: { decrement: item.quantity } },
+  try {
+    await prisma.$transaction(async (tx) => {
+      // Guard against concurrent or repeated gateway callbacks.
+      const claimed = await tx.order.updateMany({
+        where: { id: order.id, status: "PENDING" },
+        data: { status: "PAID", refId: verified.refId },
       });
-    }
-    await tx.order.update({
-      where: { id: order.id },
-      data: { status: "PAID", refId: verified.refId },
+      if (claimed.count === 0) return;
+      for (const item of order.items) {
+        const stock = await tx.product.updateMany({
+          where: { id: item.productId, stock: { gte: item.quantity } },
+          data: { stock: { decrement: item.quantity } },
+        });
+        if (stock.count !== 1) throw new Error("Product stock is no longer sufficient");
+        if (item.variantId) {
+          const variant = await tx.productVariant.updateMany({
+            where: { id: item.variantId, productId: item.productId, stock: { gte: item.quantity } },
+            data: { stock: { decrement: item.quantity } },
+          });
+          if (variant.count !== 1) throw new Error("Variant stock is no longer sufficient");
+        }
+      }
     });
-  });
+  } catch (error) {
+    console.error("Paid order stock reservation failed", order.id, error);
+    return <Result ok={false} title="سفارش نیازمند بررسی است"
+      message="پرداخت تأیید شده اما موجودی باید توسط پشتیبانی بررسی شود. لطفاً شماره سفارش را نگه دارید." />;
+  }
 
   return (
     <Result

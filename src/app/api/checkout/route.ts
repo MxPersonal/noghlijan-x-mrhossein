@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isZarinpalConfigured, requestPayment } from "@/lib/zarinpal";
+import { variantLabel } from "@/lib/product-variants";
 
 type Body = {
   customerName?: string;
   phone?: string;
   address?: string;
-  items?: { productId: string; quantity: number }[];
+  items?: { productId: string; variantId?: string; quantity: number }[];
 };
 
 export async function POST(req: Request) {
@@ -22,53 +23,77 @@ export async function POST(req: Request) {
   const address = body.address?.trim();
   const items = body.items ?? [];
 
-  if (!customerName || !phone || !address || items.length === 0) {
+  if (!customerName || !phone || !address || !Array.isArray(items) || items.length === 0 || items.length > 50) {
     return NextResponse.json(
       { error: "لطفاً همه فیلدها را پر کنید" },
       { status: 400 },
     );
   }
 
-  const productIds = items.map((i) => i.productId);
+  // Prices, availability, and variant ownership are always verified server-side.
+  const productIds = Array.from(new Set(items.map((item) => item.productId)));
+  if (items.some(item => typeof item.productId !== "string" || !Number.isSafeInteger(item.quantity)
+       || item.quantity < 1 || item.quantity > 99)) {
+    return NextResponse.json({ error: "تعداد یا شناسهٔ محصول نامعتبر است" }, { status: 400 });
+  }
   const products = await prisma.product.findMany({
     where: { id: { in: productIds }, isActive: true },
   });
-
   if (products.length !== productIds.length) {
-    return NextResponse.json(
-      { error: "یکی از محصولات یافت نشد" },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "یکی از محصولات یافت نشد" }, { status: 400 });
   }
-
+  const variants = await prisma.productVariant.findMany({
+    where: { productId: { in: productIds } },
+  });
   const productMap = new Map(products.map((p) => [p.id, p]));
+  const variantMap = new Map(variants.map((variant) => [variant.id, variant]));
+  const productsWithVariants = new Set(variants.map(variant => variant.productId));
+  const merged = new Map<string, { productId: string; variantId?: string; quantity: number }>();
+  for (const item of items) {
+    const key = item.productId + ":" + (item.variantId || "");
+    const existing = merged.get(key);
+    merged.set(key, { productId: item.productId, variantId: item.variantId,
+      quantity: (existing?.quantity ?? 0) + item.quantity });
+  }
   let total = 0;
   const orderItems: {
     productId: string;
+    variantId: string | null;
+    variantLabel: string | null;
     quantity: number;
     unitPrice: number;
   }[] = [];
+  const quantityByProduct = new Map<string, number>();
 
-  for (const item of items) {
+  for (const item of merged.values()) {
     const product = productMap.get(item.productId);
-    if (!product) {
-      return NextResponse.json({ error: "محصول نامعتبر" }, { status: 400 });
+    if (!product) return NextResponse.json({ error: "محصول نامعتبر" }, { status: 400 });
+    const variant = item.variantId ? variantMap.get(item.variantId) : undefined;
+    if (productsWithVariants.has(product.id) && !variant) {
+      return NextResponse.json({ error: "لطفاً رنگ یا ویژگی محصول را انتخاب کنید" }, { status: 400 });
     }
-    if (item.quantity < 1) {
-      return NextResponse.json({ error: "تعداد نامعتبر" }, { status: 400 });
+    if ((item.variantId && !variant) || (variant && variant.productId !== product.id)) {
+      return NextResponse.json({ error: "ترکیب انتخاب‌شده معتبر نیست" }, { status: 400 });
     }
-    if (product.stock < item.quantity) {
-      return NextResponse.json(
-        { error: `موجودی «${product.name}» کافی نیست` },
-        { status: 400 },
-      );
+    if (variant && variant.stock < item.quantity) {
+      return NextResponse.json({ error: "موجودی این رنگ یا سایز کافی نیست" }, { status: 400 });
     }
-    total += product.price * item.quantity;
+    const unitPrice = variant?.price ?? product.price;
+    total += unitPrice * item.quantity;
+    quantityByProduct.set(product.id, (quantityByProduct.get(product.id) ?? 0) + item.quantity);
     orderItems.push({
       productId: product.id,
+      variantId: variant?.id ?? null,
+      variantLabel: variant ? variantLabel(variant) : null,
       quantity: item.quantity,
-      unitPrice: product.price,
+      unitPrice,
     });
+  }
+  for (const [id, quantity] of quantityByProduct) {
+    const product = productMap.get(id);
+    if (!product || product.stock < quantity) {
+      return NextResponse.json({ error: "موجودی یکی از محصولات کافی نیست" }, { status: 400 });
+    }
   }
 
   const order = await prisma.order.create({
@@ -89,10 +114,18 @@ export async function POST(req: Request) {
   if (!isZarinpalConfigured()) {
     await prisma.$transaction(async (tx) => {
       for (const item of orderItems) {
-        await tx.product.update({
-          where: { id: item.productId },
+        const product = await tx.product.updateMany({
+          where: { id: item.productId, stock: { gte: item.quantity } },
           data: { stock: { decrement: item.quantity } },
         });
+        if (product.count !== 1) throw new Error("موجودی کافی نیست");
+        if (item.variantId) {
+          const variant = await tx.productVariant.updateMany({
+            where: { id: item.variantId, productId: item.productId, stock: { gte: item.quantity } },
+            data: { stock: { decrement: item.quantity } },
+          });
+          if (variant.count !== 1) throw new Error("موجودی رنگ یا سایز کافی نیست");
+        }
       }
       await tx.order.update({
         where: { id: order.id },
@@ -108,7 +141,7 @@ export async function POST(req: Request) {
 
   const payment = await requestPayment({
     amount: total,
-    description: `سفارش کلوث استور ${order.id}`,
+    description: `سفارش نقلی‌جان ${order.id}`,
     callbackUrl: `${appUrl}/payment/verify`,
     mobile: phone,
   });

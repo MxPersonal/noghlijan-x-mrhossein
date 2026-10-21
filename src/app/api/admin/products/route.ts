@@ -8,8 +8,10 @@ import {
   parseTerms,
 } from "@/lib/product-details";
 import { prisma } from "@/lib/prisma";
+import { ensureVariantStorage, isMissingVariantStorage, normalizeVariants } from "@/lib/product-variants";
 
 const PRODUCT_INCLUDE = {
+  variants: { orderBy: { sortOrder: "asc" as const } },
   images: { orderBy: { sortOrder: "asc" as const } },
   tags: { orderBy: { name: "asc" as const } },
   labels: { orderBy: { name: "asc" as const } },
@@ -75,12 +77,23 @@ async function readBody(request: Request): Promise<Record<string, unknown>> {
 export async function GET() {
   if (!(await isAdminAuthenticated())) return errorResponse("Unauthorized", 401);
 
-  const products = await prisma.product.findMany({
-    where: { isActive: true },
-    orderBy: { createdAt: "desc" },
-    include: PRODUCT_INCLUDE,
-  });
-  return NextResponse.json(products);
+  try {
+    const products = await prisma.product.findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: "desc" },
+      include: PRODUCT_INCLUDE,
+    });
+    return NextResponse.json(products);
+  } catch (error) {
+    if (!isMissingVariantStorage(error)) throw error;
+    // Existing products must remain visible before the first admin variant save.
+    const products = await prisma.product.findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: "desc" },
+      include: { images: { orderBy: { sortOrder: "asc" } }, tags: true, labels: true },
+    });
+    return NextResponse.json(products.map(product => ({ ...product, variants: [] })));
+  }
 }
 
 export async function POST(request: Request) {
@@ -105,6 +118,8 @@ export async function POST(request: Request) {
     const seoTitle = optionalText(body.seoTitle, "عنوان SEO", 70);
     const seoDescription = optionalText(body.seoDescription, "توضیحات SEO", 170);
     const seoKeywords = parseSeoKeywords(body.seoKeywords);
+    const variants = normalizeVariants(body.variants);
+    if (variants.length) await ensureVariantStorage();
 
     const existing = await prisma.product.findUnique({ where: { slug } });
     if (existing) slug = `${slug.slice(0, 66)}-${Date.now()}`;
@@ -119,7 +134,12 @@ export async function POST(request: Request) {
         category,
         ageGroup,
         gender,
-        stock,
+        stock: variants.length ? variants.reduce((sum, v) => sum + v.stock, 0) : stock,
+        ...(variants.length ? { variants: { create: variants.map((variant, sortOrder) => ({
+          colorName: variant.colorName, colorHex: variant.colorHex, size: variant.size,
+          sku: variant.sku, price: variant.price, stock: variant.stock, sortOrder,
+          attributes: variant.attributes, images: variant.images,
+        })) } } : {}),
         seoTitle,
         seoDescription,
         seoKeywords,
@@ -129,10 +149,10 @@ export async function POST(request: Request) {
         tags: { connectOrCreate: termConnections(tags) },
         labels: { connectOrCreate: termConnections(labels) },
       },
-      include: PRODUCT_INCLUDE,
+      include: variants.length ? PRODUCT_INCLUDE : { images: true, tags: true, labels: true },
     });
 
-    return NextResponse.json(product, { status: 201 });
+    return NextResponse.json(variants.length ? product : { ...product, variants: [] }, { status: 201 });
   } catch (error) {
     return errorResponse(
       error instanceof Error ? error.message : "ثبت محصول ناموفق بود",
@@ -154,6 +174,8 @@ export async function PUT(request: Request) {
     const name =
       body.name === undefined ? existing.name : requiredText(body.name, "نام", 160);
     const data: Prisma.ProductUpdateInput = {};
+    const variants = body.variants === undefined ? undefined : normalizeVariants(body.variants);
+    if (variants !== undefined) await ensureVariantStorage();
     if (body.name !== undefined) data.name = name;
     if (body.slug !== undefined) {
       data.slug = optionalText(body.slug, "اسلاگ", 80) || slugify(name);
@@ -172,6 +194,15 @@ export async function PUT(request: Request) {
       data.gender = requiredText(body.gender, "جنسیت", 50);
     }
     if (body.stock !== undefined) data.stock = nonNegativeInteger(body.stock, "موجودی");
+    if (variants !== undefined) {
+      data.variants = { deleteMany: {}, create: variants.map((variant, sortOrder) => ({
+        ...(variant.id ? { id: variant.id } : {}),
+        colorName: variant.colorName, colorHex: variant.colorHex, size: variant.size,
+        sku: variant.sku, price: variant.price, stock: variant.stock, sortOrder,
+        attributes: variant.attributes, images: variant.images,
+      })) };
+      if (variants.length) data.stock = variants.reduce((sum, variant) => sum + variant.stock, 0);
+    }
 
     if (body.images !== undefined || body.imageUrl !== undefined) {
       const imageUrl =
@@ -206,9 +237,9 @@ export async function PUT(request: Request) {
     const product = await prisma.product.update({
       where: { id },
       data,
-      include: PRODUCT_INCLUDE,
+      include: variants !== undefined ? PRODUCT_INCLUDE : { images: true, tags: true, labels: true },
     });
-    return NextResponse.json(product);
+    return NextResponse.json(variants !== undefined ? product : { ...product, variants: [] });
   } catch (error) {
     return errorResponse(
       error instanceof Error ? error.message : "ویرایش محصول ناموفق بود",
