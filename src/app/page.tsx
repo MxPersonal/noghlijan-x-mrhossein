@@ -3,9 +3,8 @@ import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { ProductCard } from "@/components/ProductCard";
 
-// The new reference artwork will replace this Cloudinary asset once uploaded.
-// Keeping the image URL centralized makes future swaps a one-line Git commit.
-const HERO_IMAGE = "https://res.cloudinary.com/xpersonalx/image/upload/v1792601213/noghlijan/temporary-upload-check.png";
+// Use the high-quality, locally hosted WebP image to avoid third-party image dependencies.
+const HERO_IMAGE = "/images/noghlijan-hero-high-quality.webp";
 
 const benefits = [
   { label: "ضمانت مرجوعی", description: "خرید با خیال آسوده", icon: "↺", color: "bg-[#f58e9a] text-[#713744]" },
