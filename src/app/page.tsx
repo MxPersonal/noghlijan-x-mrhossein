@@ -6,13 +6,6 @@ import { ProductCard } from "@/components/ProductCard";
 // Use the high-quality, locally hosted WebP image to avoid third-party image dependencies.
 const HERO_IMAGE = "/images/noghlijan-hero-high-quality.webp";
 
-const benefits = [
-  { label: "ضمانت مرجوعی", description: "خرید با خیال آسوده", icon: "↺", color: "bg-[#f58e9a] text-[#713744]" },
-  { label: "تضمین کیفیت", description: "انتخابی لطیف برای کوچولوها", icon: "✓", color: "bg-[#f5c95e] text-[#72501d]" },
-  { label: "خرید مطمئن", description: "شفاف و ساده", icon: "♡", color: "bg-[#80c3d8] text-[#245269]" },
-  { label: "سبد خرید", description: "همیشه در دسترس", icon: "🛒", color: "bg-[#b3ca78] text-[#405126]" },
-];
-
 const categories = [
   { title: "دخترانه", description: "لباس‌های رنگی و گل‌گلی", href: "/shop?gender=دخترانه", emoji: "🎀", color: "bg-[#fbe1e5]" },
   { title: "پسرانه", description: "راحت و پر از شیطنت", href: "/shop?gender=پسرانه", emoji: "🧸", color: "bg-[#e0eef0]" },
@@ -31,61 +24,42 @@ export default async function HomePage() {
 
   return (
     <div>
-      <section className="mx-auto max-w-7xl px-3 pt-4 sm:px-5 sm:pt-6" aria-labelledby="home-hero-title">
-        <div className="pastel-hero relative overflow-hidden rounded-[2.5rem] px-5 py-9 sm:px-10 sm:py-12 lg:grid lg:grid-cols-2 lg:items-center lg:gap-10 lg:py-14">
-          <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[#f6b4a3]/25 blur-2xl" />
-          <div aria-hidden="true" className="pointer-events-none absolute -bottom-20 left-1/3 h-52 w-72 rounded-full bg-[#a7c5a1]/20 blur-2xl" />
-          <div className="relative z-10 max-w-xl">
-            <p className="pastel-kicker inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold">
-              <span aria-hidden="true">✿</span> دنیای رنگی کوچولوها
+      <section className="home-scene relative isolate overflow-hidden" aria-labelledby="home-hero-title">
+        <div className="relative mx-auto flex max-w-7xl flex-col px-4 pb-10 pt-2 sm:px-6 lg:min-h-[680px] lg:flex-row lg:items-center lg:gap-3 lg:pb-12 lg:pt-3">
+          <div className="relative z-10 order-2 mx-auto max-w-lg py-5 text-center lg:order-1 lg:mx-0 lg:w-[43%] lg:shrink-0 lg:py-10 lg:pr-7 lg:text-right">
+            <p className="home-kicker inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold">
+              <span aria-hidden="true">✿</span> قصهٔ رنگی کوچولوها
             </p>
-            <h1 id="home-hero-title" className="mt-5 font-display text-6xl leading-[1.15] text-ink sm:text-7xl xl:text-8xl">
-              نقلی‌جان
+            <h1 id="home-hero-title" className="mt-6 font-display text-5xl leading-[1.35] text-[#593e35] sm:text-6xl xl:text-7xl">
+              لباس‌های خوش‌رنگ
+              <span className="block text-[#9a405d]">برای روزهای شیرین</span>
             </h1>
-            <p className="mt-3 font-display text-3xl text-teal-deep sm:text-4xl">
-              پوشاک بچه‌گانه
+            <p className="mx-auto mt-5 max-w-md text-base leading-9 text-[#664d43] lg:mx-0">
+              از نقلی‌جان تا خونهٔ شما؛ پوشاک بچه‌گانهٔ نرم، راحت و رنگارنگ برای هر لحظهٔ کودکی.
             </p>
-            <p className="mt-5 max-w-md text-base leading-8 text-ink-soft sm:text-lg">
-              لباس‌های شاد، لطیف و دوست‌داشتنی برای لحظه‌های شیرین کودکی.
-              با چند کلیک، لباس محبوب کوچولوت رو پیدا کن.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/shop" className="inline-flex min-h-12 items-center justify-center rounded-full bg-teal px-7 py-3 text-sm font-semibold text-white shadow-lg shadow-[#aa4863]/20 transition hover:-translate-y-0.5 hover:bg-[#913b55]">
+            <div className="mt-8 flex flex-wrap justify-center gap-3 lg:justify-start">
+              <Link href="/shop" className="inline-flex min-h-12 items-center justify-center rounded-full bg-[#9a405d] px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_26px_rgba(145,67,89,0.18)] transition hover:bg-[#7c3148]">
                 مشاهدهٔ محصولات <span aria-hidden="true" className="mr-2">←</span>
               </Link>
-              <Link href="/shop?gender=دخترانه" className="glass-soft inline-flex min-h-12 items-center justify-center rounded-full px-6 py-3 text-sm font-semibold text-ink transition hover:bg-cream-deep">
+              <Link href="/shop?gender=دخترانه" className="home-secondary-button inline-flex min-h-12 items-center justify-center rounded-full px-6 py-3 text-sm font-semibold text-[#593e35] transition hover:bg-white">
                 خرید دخترانه
               </Link>
-              <Link href="/shop?gender=پسرانه" className="glass-soft inline-flex min-h-12 items-center justify-center rounded-full px-6 py-3 text-sm font-semibold text-ink transition hover:bg-cream-deep">
+              <Link href="/shop?gender=پسرانه" className="home-secondary-button inline-flex min-h-12 items-center justify-center rounded-full px-6 py-3 text-sm font-semibold text-[#593e35] transition hover:bg-white">
                 خرید پسرانه
               </Link>
             </div>
           </div>
-          <div className="relative z-10 mx-auto mt-10 w-full max-w-[36rem] lg:mt-0">
-            <div className="pastel-hero-image relative aspect-square overflow-hidden rounded-[2rem] border-[7px] border-white/70 bg-[#f7d4bc] sm:rounded-[2.7rem]">
-              <Image
-                src={HERO_IMAGE}
-                alt="تصویر پوشاک کودک نقلی‌جان"
-                fill
-                priority
-                className="object-contain object-center"
-                sizes="(max-width: 1024px) 90vw, 46vw"
-              />
-            </div>
-            <span aria-hidden="true" className="absolute -bottom-4 -right-2 grid size-14 place-items-center rounded-full bg-[#ffcf68] text-3xl shadow-lg sm:-right-5">🌼</span>
+          <div className="relative order-1 mx-auto w-full max-w-[660px] lg:order-2 lg:-mr-12 lg:w-[61%] lg:max-w-none lg:shrink-0">
+            <Image
+              src={HERO_IMAGE}
+              alt="دختر و پسربچه با لباس‌های رنگی نقلی‌جان در فضای پاستلی؛ ضمانت مرجوعی، تضمین کیفیت، احراز هویت و سبد خرید فعال"
+              width={1536}
+              height={1536}
+              priority
+              className="home-artwork block h-auto w-full"
+              sizes="(max-width: 1024px) 100vw, (max-width: 1440px) 61vw, 840px"
+            />
           </div>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-6xl px-4 pt-8 sm:px-6" aria-label="مزایای خرید از نقلی‌جان">
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5">
-          {benefits.map(({ label, description, icon, color }) => (
-            <div key={label} className="pastel-feature flex flex-col items-center rounded-[1.8rem] px-3 py-5 text-center sm:py-6">
-              <span aria-hidden="true" className={`mb-3 grid size-14 place-items-center rounded-full text-3xl font-bold shadow-sm ${color}`}>{icon}</span>
-              <h2 className="text-sm font-bold text-ink sm:text-base">{label}</h2>
-              <p className="mt-1 text-xs leading-6 text-ink-soft">{description}</p>
-            </div>
-          ))}
         </div>
       </section>
 

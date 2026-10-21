@@ -17,7 +17,7 @@ export function Header() {
   if (pathname.startsWith("/admin")) return null;
 
   return (
-    <header className="glass-header relative z-20 border-b border-[#ddab9a]/20">
+    <header className={`glass-header relative z-20 border-b border-[#ddab9a]/20 ${pathname === "/" ? "home-header" : ""}`}>
       <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
         <Link href="/" className="group flex shrink-0 items-center gap-2" aria-label="صفحه اصلی نقلی‌جان">
           <span aria-hidden="true" className="grid size-10 place-items-center rounded-2xl bg-[#f9d6d8] text-2xl shadow-sm sm:size-12">🌼</span>

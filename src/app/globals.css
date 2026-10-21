@@ -13,14 +13,14 @@
   --mint: #edf2d8;
   --background: var(--cream);
   --foreground: var(--ink);
-  --site-base: #fff7ed;
+  --site-base: #ead0b7;
   --site-image-overlay:
-    radial-gradient(circle at 6% 13%, rgba(250, 190, 165, .33), transparent 38%),
-    radial-gradient(circle at 93% 15%, rgba(250, 208, 105, .24), transparent 34%),
-    linear-gradient(180deg, #fff8f0, #fff1e4 68%, #fff9f2);
+    radial-gradient(ellipse 55% 35% at 0% 12%, rgba(249, 198, 163, .22), transparent 80%),
+    radial-gradient(ellipse 50% 42% at 98% 21%, rgba(255, 203, 117, .16), transparent 78%),
+    linear-gradient(180deg, #d5af8d 0%, #e9bea2 45%, #fff0df 79%, #fff8f0 100%);
   --site-glow:
-    radial-gradient(ellipse 45% 32% at 9% 63%, rgba(238, 170, 188, .15), transparent 72%),
-    radial-gradient(ellipse 48% 30% at 88% 72%, rgba(158, 195, 139, .15), transparent 72%);
+    radial-gradient(ellipse 48% 30% at 8% 67%, rgba(238, 170, 188, .1), transparent 75%),
+    radial-gradient(ellipse 48% 34% at 90% 73%, rgba(158, 195, 139, .09), transparent 75%);
   --glass-border: rgba(160, 92, 87, .15);
   --glass-surface-bg: rgba(255, 253, 247, .88);
   --glass-soft-bg: rgba(255, 250, 243, .8);
@@ -278,14 +278,44 @@ body,
   transform: scale(1.25);
 }
 
-/* Noghlijan design system: pastel surfaces, rounded controls and accessible focus. */
-.pastel-hero {
-  background: var(--hero-stage-bg);
-  border: 1px solid var(--glass-border);
-  box-shadow: 0 24px 72px var(--glass-shadow);
+/* Seamless hero: sampled from the actual WebP top edge (#d3ae84), not a photo card. */
+.home-scene {
+  background:
+    radial-gradient(ellipse 48% 45% at 4% 30%, rgba(242, 175, 159, .17), transparent 80%),
+    radial-gradient(ellipse 54% 55% at 98% 39%, rgba(244, 199, 101, .11), transparent 79%),
+    linear-gradient(180deg, #d5af8d 0%, #dcb596 28%, #e9bca0 65%, #fff8f0 100%);
 }
-.pastel-hero-image {
-  box-shadow: 0 18px 44px rgba(119, 70, 65, .18);
+.home-artwork {
+  /* Gently remove the square image edges so the scene blends with the page. */
+  -webkit-mask-image:
+    linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, black 5%, black 95%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, black 5%, black 95%, transparent 100%);
+  mask-composite: intersect;
+}
+.home-kicker {
+  background: rgba(255, 244, 229, .72);
+  color: #77473e;
+  border: 1px solid rgba(255, 248, 238, .64);
+}
+.home-secondary-button {
+  background: rgba(255, 248, 238, .75);
+  border: 1px solid rgba(116, 73, 63, .14);
+  box-shadow: 0 8px 28px rgba(131, 83, 65, .08);
+}
+.home-header {
+  background: rgba(213, 175, 141, .92);
+  border-bottom-color: rgba(113, 74, 55, .12);
+  box-shadow: 0 4px 18px rgba(93, 54, 47, .06);
+}
+:root[data-theme="dark"] .home-header {
+  background: rgba(41, 33, 41, .94);
+}
+:root[data-theme="dark"] .home-scene {
+  background: linear-gradient(180deg, #d5af8d 0%, #dcba9c 60%, #251f28 100%);
 }
 .pastel-kicker {
   background: #ffe2e4;
