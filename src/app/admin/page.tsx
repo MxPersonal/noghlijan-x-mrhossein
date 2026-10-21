@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
 import { isAdminAuthenticated } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 import { AdminLoginForm } from "@/components/admin/AdminLoginForm";
@@ -26,8 +28,17 @@ export default async function AdminPage({
 
   if (!authed) {
     return (
-      <div className="admin-page mx-auto max-w-6xl px-4 py-10 sm:px-6">
-        <AdminLoginForm />
+      <div className="admin-page admin-studio admin-studio--login mx-auto w-full max-w-[1440px] px-4 py-8 sm:px-7 lg:px-10">
+        <div className="admin-login-grid">
+          <div className="admin-login-intro">
+            <span className="admin-eyebrow">✿ NOGHLIJAN STUDIO</span>
+            <h1 className="admin-intro-title">مدیریتِ دنیای <span>کوچولوها</span></h1>
+            <p>همان رنگ‌ها، همان حس خوب؛ اینجا پشت صحنهٔ فروشگاه نقلی‌جان است، جایی که محصولات و سفارش‌ها با خیال راحت مدیریت می‌شوند.</p>
+            <AdminArtwork />
+            <span className="admin-brand-note">با عشق، از ویترین تا پشت صحنه ✦</span>
+          </div>
+          <AdminLoginForm />
+        </div>
       </div>
     );
   }
@@ -41,8 +52,17 @@ export default async function AdminPage({
     });
 
     return (
-      <div className="admin-page mx-auto max-w-6xl px-4 py-10 sm:px-6">
+      <div className="admin-page admin-studio mx-auto w-full max-w-[1440px] px-4 pb-16 pt-5 sm:px-7 lg:px-10">
         <AdminNav tab="orders" />
+        <AdminWelcome
+          tab="orders"
+          metrics={[
+            { label: "کل سفارش‌ها", value: orders.length, icon: "✿" },
+            { label: "در انتظار", value: orders.filter(o => o.status === "PENDING").length, icon: "◷" },
+            { label: "پرداخت‌شده", value: orders.filter(o => o.status === "PAID").length, icon: "✓" },
+            { label: "ارسال‌شده", value: orders.filter(o => o.status === "SHIPPED").length, icon: "↗" },
+          ]}
+        />
         <AdminOrders
           initial={orders.map((o) => ({
             ...o,
@@ -80,9 +100,83 @@ export default async function AdminPage({
   }
 
   return (
-    <div className="admin-page mx-auto max-w-6xl px-4 py-10 sm:px-6">
+    <div className="admin-page admin-studio mx-auto w-full max-w-[1440px] px-4 pb-16 pt-5 sm:px-7 lg:px-10">
       <AdminNav tab="products" />
+      <AdminWelcome
+        tab="products"
+        metrics={[
+          { label: "محصول فعال", value: products.length, icon: "✿" },
+          { label: "تنوع کالا", value: products.reduce((count, product) => count + product.variants.length, 0), icon: "◈" },
+          { label: "نیازمند موجودی", value: products.filter(p => p.stock <= 3).length, icon: "◷" },
+          { label: "تصاویر محصولات", value: products.reduce((count, p) => count + p.images.length, 0), icon: "▧" },
+        ]}
+      />
       <AdminProducts initial={products} />
     </div>
+  );
+}
+
+type AdminMetric = { label: string; value: number; icon: string };
+
+function AdminArtwork() {
+  return (
+    <div className="admin-artwork" aria-hidden="true">
+      <Image
+        src="/images/noghlijan-hero-high-quality.webp"
+        alt=""
+        width={1536}
+        height={1536}
+        className="admin-artwork-img admin-artwork-img--light"
+        sizes="(max-width: 768px) 85vw, 450px"
+        priority={false}
+      />
+      <Image
+        src="/images/noghlijan-hero-dark-8k.webp"
+        alt=""
+        width={8192}
+        height={8192}
+        className="admin-artwork-img admin-artwork-img--dark"
+        sizes="(max-width: 768px) 85vw, 450px"
+      />
+    </div>
+  );
+}
+
+function AdminWelcome({ tab, metrics }: { tab: "products" | "orders"; metrics: AdminMetric[] }) {
+  const productsTab = tab === "products";
+  return (
+    <>
+      <section className="admin-welcome" aria-labelledby="admin-welcome-title">
+        <div className="admin-welcome-copy">
+          <p className="admin-eyebrow">✳ NOGHLIJAN · CREATIVE STUDIO</p>
+          <h1 id="admin-welcome-title" className="admin-welcome-title">
+            {productsTab ? <>ویترین قشنگ‌تری <span>بسازیم.</span></> : <>سفارش‌ها رو با <span>عشق</span> مدیریت کنیم.</>}
+          </h1>
+          <p className="admin-welcome-subtitle">
+            {productsTab
+              ? "محصولات، عکس‌ها، رنگ‌ها و سایزها، همه در یک فضای مرتب و دوست‌داشتنی."
+              : "جزئیات خرید، وضعیت سفارش و آماده‌سازی ارسال‌ها در یک نگاه."}
+          </p>
+          <div className="admin-welcome-actions">
+            <a className="admin-primary-link" href={productsTab ? "#admin-product-editor" : "#admin-order-list"}>
+              {productsTab ? "افزودن یا ویرایش محصول" : "مشاهدهٔ سفارش‌ها"} <span aria-hidden="true">←</span>
+            </a>
+            <Link className="admin-secondary-link" href="/">
+              دیدن ویترین فروشگاه <span aria-hidden="true">↗</span>
+            </Link>
+          </div>
+        </div>
+        <AdminArtwork />
+        <span className="admin-welcome-decoration" aria-hidden="true">✿</span>
+      </section>
+      <dl className="admin-stats" aria-label="خلاصهٔ مدیریت فروشگاه">
+        {metrics.map((metric, index) => (
+          <div className={"admin-stat admin-stat--" + (index + 1)} key={metric.label}>
+            <dt><span className="admin-stat-icon" aria-hidden="true">{metric.icon}</span>{metric.label}</dt>
+            <dd>{metric.value.toLocaleString("fa-IR")}</dd>
+          </div>
+        ))}
+      </dl>
+    </>
   );
 }

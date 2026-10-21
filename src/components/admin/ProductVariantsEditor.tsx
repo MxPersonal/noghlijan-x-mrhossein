@@ -75,7 +75,7 @@ export function ProductVariantsEditor({ value, onChange, gallery, disabled }: Pr
   }
 
   return (
-    <fieldset className="space-y-4 rounded-2xl border-2 border-teal/15 bg-cream/30 p-4">
+    <fieldset className="admin-variant-editor space-y-4 rounded-2xl border-2 border-teal/15 bg-cream/30 p-4">
       <legend className="px-2 font-display text-2xl text-teal-deep">رنگ‌ها و ویژگی‌های محصول</legend>
       <p className="text-sm leading-7 text-ink-soft">
         هر ترکیب رنگ، سایز یا ویژگی یک گزینهٔ قابل خرید است. برای هر گزینه موجودی،
@@ -95,7 +95,7 @@ export function ProductVariantsEditor({ value, onChange, gallery, disabled }: Pr
         ))}
         <button type="button" disabled={disabled || uploading || value.length >= 48}
           onClick={() => { onChange([...value, newVariant()]); setSelected(value.length); }}
-          className="rounded-full border border-dashed border-teal px-4 py-2 text-sm font-semibold text-teal-deep disabled:opacity-50">
+          className="admin-add-variant rounded-full border border-dashed border-teal px-4 py-2 text-sm font-semibold text-teal-deep disabled:opacity-50">
           + افزودن ترکیب
         </button>
       </div>
@@ -105,7 +105,7 @@ export function ProductVariantsEditor({ value, onChange, gallery, disabled }: Pr
           اگر محصول فقط یک مدل دارد، این بخش را خالی بگذار. برای چندرنگ یا چندسایز روی «افزودن ترکیب» بزن.
         </p>
       ) : (
-        <div className="grid gap-4 rounded-2xl border border-ink/10 bg-white/35 p-4">
+        <div className="admin-variant-detail grid gap-4 rounded-2xl border border-ink/10 bg-white/35 p-4">
           <div className="flex items-center justify-between gap-3">
             <h3 className="font-semibold text-ink">ویرایش گزینهٔ {(selectIndex + 1).toLocaleString("fa-IR")}</h3>
             <button type="button" disabled={disabled || uploading}

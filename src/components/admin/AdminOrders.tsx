@@ -12,90 +12,151 @@ type Order = {
   address: string;
   refId: string | null;
   createdAt: string;
-  items: {
-    quantity: number;
-    unitPrice: number;
-    variantLabel: string | null;
-    product: { name: string };
-  }[];
+  items: { quantity: number; unitPrice: number; variantLabel: string | null; product: { name: string } }[];
 };
 
-const statusLabel: Record<string, string> = {
-  PENDING: "در انتظار",
-  PAID: "پرداخت‌شده",
-  FAILED: "ناموفق",
-  SHIPPED: "ارسال‌شده",
+const STATUS: Record<string, { label: string; className: string }> = {
+  PENDING: { label: "در انتظار پرداخت", className: "pending" },
+  PAID: { label: "پرداخت‌شده", className: "paid" },
+  FAILED: { label: "ناموفق", className: "failed" },
+  SHIPPED: { label: "ارسال‌شده", className: "shipped" },
 };
+
+const filters = [
+  { value: "all", label: "همه" },
+  { value: "PENDING", label: "در انتظار" },
+  { value: "PAID", label: "پرداخت‌شده" },
+  { value: "SHIPPED", label: "ارسال‌شده" },
+  { value: "FAILED", label: "ناموفق" },
+] as const;
 
 export function AdminOrders({ initial }: { initial: Order[] }) {
   const [orders, setOrders] = useState(initial);
   const [busy, setBusy] = useState<string | null>(null);
+  const [filter, setFilter] = useState<string>("all");
+  const [search, setSearch] = useState("");
+  const [error, setError] = useState("");
+
+  const normalized = search.trim().toLocaleLowerCase();
+  const visible = orders.filter(order =>
+    (filter === "all" || order.status === filter) &&
+    (!normalized || [order.customerName, order.phone, order.id, order.refId || ""]
+      .some(value => value.toLocaleLowerCase().includes(normalized)))
+  );
 
   async function setStatus(id: string, status: string) {
     setBusy(id);
-    const res = await fetch("/api/admin/orders", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, status }),
-    });
-    if (res.ok) {
-      const updated = await res.json();
-      setOrders((prev) =>
-        prev.map((o) => (o.id === id ? { ...o, status: updated.status } : o)),
-      );
+    setError("");
+    try {
+      const response = await fetch("/api/admin/orders", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status }),
+      });
+      const data = await response.json().catch(() => ({})) as { status?: string; error?: string };
+      if (!response.ok) throw Error(data.error || "تغییر وضعیت سفارش ناموفق بود");
+      setOrders(current => current.map(order => order.id === id
+        ? { ...order, status: data.status ?? status }
+        : order));
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : "ارتباط با سرور برقرار نشد");
+    } finally {
+      setBusy(null);
     }
-    setBusy(null);
-  }
-
-  if (orders.length === 0) {
-    return <p className="text-ink-soft">هنوز سفارشی ثبت نشده است.</p>;
   }
 
   return (
-    <ul className="space-y-4">
-      {orders.map((order) => (
-        <li
-          key={order.id}
-          className="glass-surface rounded-2xl p-5"
-        >
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <p className="font-medium text-ink">{order.customerName}</p>
-              <p className="text-sm text-ink-soft">
-                {order.phone} · {formatDate(order.createdAt)}
-              </p>
-              <p className="mt-1 text-sm text-ink-soft">{order.address}</p>
-            </div>
-            <div className="text-left">
-              <p className="text-teal-deep">{formatPrice(order.total)}</p>
-              <p className="text-xs text-ink-soft">
-                {statusLabel[order.status] ?? order.status}
-              </p>
-              {order.refId ? (
-                <p className="text-xs text-ink-soft">پیگیری: {order.refId}</p>
-              ) : null}
-            </div>
-          </div>
-          <ul className="mt-3 space-y-1 border-t border-ink/6 pt-3 text-sm text-ink-soft">
-            {order.items.map((item, i) => (
-              <li key={i}>
-                {item.product.name}{item.variantLabel ? " · " + item.variantLabel : ""} × {item.quantity} —{" "}
-                {formatPrice(item.unitPrice * item.quantity)}
-              </li>
-            ))}
-          </ul>
-          {order.status === "PAID" ? (
-            <button
-              type="button"
-              disabled={busy === order.id}
-              onClick={() => setStatus(order.id, "SHIPPED")}
-              className="mt-3 rounded-lg bg-mint px-3 py-1.5 text-xs text-teal-deep hover:bg-teal hover:text-white disabled:opacity-50"
-            >
-              علامت‌گذاری به‌عنوان ارسال‌شده
-            </button>
-          ) : null}
-        </li>
-      ))}
-    </ul>
+    <section className="admin-orders" id="admin-order-list" aria-labelledby="admin-orders-title">
+      <div className="admin-orders-toolbar">
+        <div>
+          <p className="admin-panel-overline">01 / مدیریت سفارش‌ها</p>
+          <h2 id="admin-orders-title">سفارش‌ها <span aria-hidden="true">✿</span></h2>
+          <p>جست‌وجو، بررسی جزئیات و تغییر وضعیت ارسال در یک صفحه.</p>
+        </div>
+        <label className="admin-catalog-search admin-order-search">
+          <span aria-hidden="true">⌕</span>
+          <span className="sr-only">جست‌وجوی سفارش</span>
+          <input type="search" value={search} onChange={event => setSearch(event.target.value)}
+            placeholder="نام مشتری، شماره یا کد سفارش..." />
+        </label>
+      </div>
+      <div className="admin-order-filters" role="group" aria-label="فیلتر وضعیت سفارش">
+        {filters.map(item => (
+          <button key={item.value} type="button" aria-pressed={filter === item.value}
+            onClick={() => setFilter(item.value)}
+            className={"admin-order-filter" + (filter === item.value ? " is-active" : "")}>
+            {item.label}
+            <span>{(item.value === "all" ? orders.length : orders.filter(order => order.status === item.value).length).toLocaleString("fa-IR")}</span>
+          </button>
+        ))}
+      </div>
+      {error && <p className="admin-order-error" role="alert">{error}</p>}
+      {!visible.length ? (
+        <div className="admin-orders-empty">
+          <span aria-hidden="true">✿</span>
+          <h3>{orders.length ? "سفارشی با این جست‌وجو پیدا نشد" : "هنوز سفارشی ثبت نشده"}</h3>
+          <p>{orders.length ? "فیلتر یا عبارت جست‌وجو را تغییر بده." : "سفارش‌های جدید اینجا نمایش داده می‌شوند."}</p>
+          {orders.length > 0 && <button type="button" onClick={() => { setFilter("all"); setSearch(""); }}>نمایش همهٔ سفارش‌ها</button>}
+        </div>
+      ) : (
+        <div className="admin-order-list">
+          {visible.map(order => {
+            const status = STATUS[order.status] ?? { label: order.status, className: "pending" };
+            return (
+              <article className="admin-order-card" key={order.id}>
+                <div className="admin-order-card-top">
+                  <div className="admin-order-avatar" aria-hidden="true">✿</div>
+                  <div className="admin-order-person">
+                    <h3>{order.customerName}</h3>
+                    <p>{formatDate(order.createdAt)} · <span dir="ltr">{order.phone}</span></p>
+                  </div>
+                  <span className={"admin-order-status " + status.className}>{status.label}</span>
+                </div>
+                <div className="admin-order-card-details">
+                  <div>
+                    <span className="admin-order-small-label">کد سفارش</span>
+                    <p className="admin-order-code" dir="ltr">{order.id.slice(-10).toUpperCase()}</p>
+                  </div>
+                  <div>
+                    <span className="admin-order-small-label">مبلغ سفارش</span>
+                    <p className="admin-order-total">{formatPrice(order.total)}</p>
+                  </div>
+                  <div className="admin-order-address">
+                    <span className="admin-order-small-label">آدرس ارسال</span>
+                    <p>{order.address}</p>
+                  </div>
+                </div>
+                <div className="admin-order-items">
+                  <h4>اقلام سفارش <span>{order.items.length.toLocaleString("fa-IR")}</span></h4>
+                  <ul>
+                    {order.items.map((item, index) => (
+                      <li key={index}>
+                        <span className="admin-order-item-name">
+                          {item.product.name}
+                          {item.variantLabel && <small>{item.variantLabel}</small>}
+                        </span>
+                        <span className="admin-order-item-amount">
+                          {item.quantity.toLocaleString("fa-IR")} × {formatPrice(item.unitPrice)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="admin-order-card-footer">
+                  <span>{order.refId ? "کد پیگیری: " + order.refId : "نقلی‌جان · فروشگاه پوشاک کودک"}</span>
+                  {order.status === "PAID" &&
+                    <button type="button" disabled={busy === order.id}
+                      onClick={() => void setStatus(order.id, "SHIPPED")}
+                      className="admin-order-ship">
+                      {busy === order.id ? "در حال ثبت..." : "ثبت به‌عنوان ارسال‌شده"} <span aria-hidden="true">↗</span>
+                    </button>
+                  }
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
+    </section>
   );
 }

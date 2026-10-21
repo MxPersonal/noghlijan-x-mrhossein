@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { ProductImportPanel } from "@/components/admin/ProductImportPanel";
-import { ProductVariantsEditor, newVariant, type VariantDraft } from "@/components/admin/ProductVariantsEditor";
+import { ProductVariantsEditor, type VariantDraft } from "@/components/admin/ProductVariantsEditor";
 import { StoreIntegrationsPanel } from "@/components/admin/StoreIntegrationsPanel";
 import { formatPrice } from "@/lib/format";
 import { isProductImagePlaceholder } from "@/lib/product-images";
@@ -123,6 +123,7 @@ export function AdminProducts({ initial }: { initial: Product[] }) {
   const [products, setProducts] = useState(initial);
   const [form, setForm] = useState<ProductForm>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -141,6 +142,12 @@ export function AdminProducts({ initial }: { initial: Product[] }) {
 
   function startEdit(product: Product) {
     clearImageSelection();
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.requestAnimationFrame(() => {
+      document.getElementById("admin-product-editor")?.scrollIntoView({
+        behavior: reducedMotion ? "instant" : "smooth", block: "start",
+      });
+    });
     setEditingId(product.id);
     setForm({
       name: product.name,
@@ -369,21 +376,54 @@ export function AdminProducts({ initial }: { initial: Product[] }) {
     }
   }
 
+  const visibleProducts = products.filter((product) => {
+    const term = searchQuery.trim().toLocaleLowerCase();
+    if (!term) return true;
+    return [product.name, product.slug, product.category, product.ageGroup, product.gender]
+      .some(value => value.toLocaleLowerCase().includes(term));
+  });
+
   return (
     <>
-      <StoreIntegrationsPanel onImported={() => void reloadProducts()} />
-      <ProductImportPanel onImported={() => void reloadProducts()} />
+      <section className="admin-tools-dock" aria-label="ابزارهای جانبی مدیریت">
+        <div className="admin-tools-caption">
+          <span className="admin-section-number">01</span>
+          <div>
+            <h2>ابزارهای کمکی</h2>
+            <p>اتصال سرویس‌ها و ورود گروهی محصولات، هر زمان که لازم داشتی.</p>
+          </div>
+        </div>
+        <div className="admin-tools-disclosures">
+          <details className="admin-tool-disclosure">
+            <summary><span aria-hidden="true">◈</span> اتصال فروشگاه‌ها <span className="admin-disclosure-icon" aria-hidden="true">＋</span></summary>
+            <div className="admin-tool-content"><StoreIntegrationsPanel onImported={() => void reloadProducts()} /></div>
+          </details>
+          <details className="admin-tool-disclosure">
+            <summary><span aria-hidden="true">▤</span> ورود گروهی از Excel <span className="admin-disclosure-icon" aria-hidden="true">＋</span></summary>
+            <div className="admin-tool-content"><ProductImportPanel onImported={() => void reloadProducts()} /></div>
+          </details>
+        </div>
+      </section>
 
-      <div className="grid gap-8 lg:grid-cols-2">
+      <div className="admin-workspace" id="admin-workspace">
         <form
+          id="admin-product-editor"
           onSubmit={onSubmit}
-          className="glass-surface space-y-4 rounded-2xl p-5"
+          className="glass-surface admin-editor-card"
         >
-          <h2 className="font-display text-2xl text-ink">
-            {editingId ? "ویرایش محصول" : "محصول جدید"}
-          </h2>
-
-          {(
+          <div className="admin-editor-head">
+            <div>
+              <p className="admin-panel-overline">02 / طراحی ویترین</p>
+              <h2 className="admin-editor-title">{editingId ? "ویرایش محصول" : "محصول جدید"} <span aria-hidden="true">✿</span></h2>
+              <p className="admin-editor-subtitle">
+                {editingId ? "اطلاعات و تصویرها را ویرایش کن؛ سپس تغییرات را ذخیره کن." : "از اطلاعات اصلی شروع کن و بعد تصاویر و ویژگی‌ها را اضافه کن."}
+              </p>
+            </div>
+            <span className="admin-editor-bubble" aria-hidden="true">✳</span>
+          </div>
+          <div className="admin-form-section-label"><span>۱</span> مشخصات اصلی</div>
+          <div className="admin-form-grid">
+            {(
             [
               ["name", "نام"],
               ["slug", "اسلاگ (اختیاری)"],
@@ -393,7 +433,7 @@ export function AdminProducts({ initial }: { initial: Product[] }) {
               ["ageGroup", "گروه سنی"],
             ] as const
           ).map(([key, label]) => (
-            <label key={key} className="block text-xs text-ink-soft">
+            <label key={key} className="admin-field-label">
               {label}
               <input
                 value={form[key]}
@@ -404,8 +444,9 @@ export function AdminProducts({ initial }: { initial: Product[] }) {
               />
             </label>
           ))}
+          </div>
 
-          <label className="block text-xs text-ink-soft">
+          <label className="admin-field-label">
             جنسیت
             <select
               value={form.gender}
@@ -418,7 +459,7 @@ export function AdminProducts({ initial }: { initial: Product[] }) {
             </select>
           </label>
 
-          <label className="block text-xs text-ink-soft">
+          <label className="admin-field-label">
             توضیحات
             <textarea
               value={form.description}
@@ -429,7 +470,8 @@ export function AdminProducts({ initial }: { initial: Product[] }) {
             />
           </label>
 
-          <fieldset className="rounded-xl border border-ink/10 p-3">
+          <div className="admin-form-section-label"><span>۲</span> تصویر و گالری محصول</div>
+          <fieldset className="admin-image-fieldset rounded-xl border border-ink/10 p-3">
             <legend className="px-2 text-sm font-medium text-ink">گالری تصاویر</legend>
             <label htmlFor="product-images" className="mb-1 block text-xs text-ink-soft">
               افزودن یک یا چند تصویر
@@ -500,6 +542,7 @@ export function AdminProducts({ initial }: { initial: Product[] }) {
             )}
           </fieldset>
 
+          <div className="admin-form-section-label"><span>۳</span> رنگ‌ها، سایزها و ویژگی‌ها</div>
           <ProductVariantsEditor
             value={form.variants}
             onChange={(variants) => setForm((current) => ({ ...current, variants }))}
@@ -507,6 +550,7 @@ export function AdminProducts({ initial }: { initial: Product[] }) {
             disabled={saving || uploading}
           />
 
+          <div className="admin-form-section-label"><span>۴</span> معرفی و دیده‌شدن</div>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block text-xs text-ink-soft">
               تگ‌ها
@@ -529,7 +573,7 @@ export function AdminProducts({ initial }: { initial: Product[] }) {
           </div>
           <p className="-mt-2 text-xs text-ink-soft">موارد را با ویرگول فارسی یا انگلیسی جدا کنید.</p>
 
-          <fieldset className="space-y-3 rounded-xl border border-ink/10 p-3">
+          <fieldset className="admin-seo-fieldset space-y-3 rounded-xl border border-ink/10 p-3">
             <legend className="px-2 text-sm font-medium text-ink">تنظیمات SEO</legend>
             <label className="block text-xs text-ink-soft">
               عنوان SEO ({form.seoTitle.length.toLocaleString("fa-IR")}/۷۰)
@@ -564,55 +608,86 @@ export function AdminProducts({ initial }: { initial: Product[] }) {
             </p>
           </fieldset>
 
-          {error ? <p className="text-sm text-peach">{error}</p> : null}
-          <div className="flex gap-2">
+          {error ? <p role="alert" className="admin-form-error">{error}</p> : null}
+          <div className="admin-save-actions">
             <button
               type="submit"
               disabled={saving || uploading || !form.images[0]?.url || isProductImagePlaceholder(form.images[0]?.url ?? "")}
-              className="rounded-xl bg-teal px-4 py-2 text-sm text-white hover:bg-teal-deep disabled:opacity-60"
+              className="admin-save-button rounded-xl bg-teal px-4 py-2 text-sm text-white hover:bg-teal-deep disabled:opacity-60"
             >
               {saving ? "در حال ذخیره..." : editingId ? "ذخیره تغییرات" : "افزودن محصول"}
             </button>
             {editingId ? (
-              <button type="button" onClick={resetForm} className="rounded-xl bg-cream-deep px-4 py-2 text-sm">
+              <button type="button" onClick={resetForm} className="admin-cancel-button rounded-xl bg-cream-deep px-4 py-2 text-sm">
                 انصراف
               </button>
             ) : null}
           </div>
         </form>
 
-        <div className="space-y-3">
-          <h2 className="font-display text-2xl text-ink">لیست محصولات</h2>
-          <ul className="max-h-[80vh] space-y-2 overflow-auto">
-            {products.map((product) => (
-              <li key={product.id} className="glass-soft rounded-xl p-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <p className="font-medium">{product.name}</p>
-                    <p className="text-xs text-ink-soft">
-                      {product.category} · {formatPrice(product.price)} · موجودی {product.stock.toLocaleString("fa-IR")} · {productImages(product).length.toLocaleString("fa-IR")} تصویر
-                    </p>
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {product.labels.map(({ id, name }) => (
-                        <span key={id} className="rounded-full bg-peach/15 px-2 py-0.5 text-[10px] text-ink">{name}</span>
-                      ))}
-                      {product.tags.slice(0, 4).map(({ id, name }) => (
-                        <span key={id} className="rounded-full bg-mint px-2 py-0.5 text-[10px] text-ink-soft">#{name}</span>
-                      ))}
+        <aside className="admin-catalog" id="admin-product-catalog" aria-labelledby="admin-catalog-title">
+          <div className="admin-catalog-header">
+            <p className="admin-panel-overline">03 / کتابخانهٔ محصولات</p>
+            <div className="admin-catalog-headline">
+              <h2 id="admin-catalog-title">محصولات فروشگاه</h2>
+              <span className="admin-count-pill">{products.length.toLocaleString("fa-IR")} کالا</span>
+            </div>
+            <p>برای ویرایش، یک محصول را از لیست انتخاب کن.</p>
+            <label className="admin-catalog-search">
+              <span aria-hidden="true">⌕</span>
+              <span className="sr-only">جست‌وجوی محصول</span>
+              <input type="search" value={searchQuery} onChange={event => setSearchQuery(event.target.value)}
+                placeholder="جست‌وجو در نام، دسته و سایز..." />
+            </label>
+          </div>
+          <div className="admin-catalog-scroll">
+            {visibleProducts.length ? (
+              <ul className="admin-product-list">
+                {visibleProducts.map(product => (
+                  <li key={product.id} className={"admin-product-row" + (editingId === product.id ? " is-editing" : "")}>
+                    <div className="admin-product-thumb">
+                      <Image src={product.imageUrl} alt="" fill
+                        unoptimized={/^https?:\/\//i.test(product.imageUrl)}
+                        sizes="72px" className="object-cover" />
                     </div>
-                    {isProductImagePlaceholder(product.imageUrl) ? (
-                      <p className="mt-1 text-xs font-medium text-peach">بدون تصویر — برای افزودن عکس، ویرایش کنید</p>
-                    ) : null}
-                  </div>
-                  <div className="flex gap-2 text-xs">
-                    <button type="button" onClick={() => startEdit(product)} className="text-teal hover:underline">ویرایش</button>
-                    <button type="button" onClick={() => onDelete(product.id)} className="text-peach hover:underline">آرشیو</button>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
+                    <div className="admin-product-detail">
+                      <h3>{product.name}</h3>
+                      <p>{product.category} · {formatPrice(product.price)}</p>
+                      <div className="admin-product-meta">
+                        <span className={product.stock > 3 ? "admin-stock-ok" : "admin-stock-low"}>
+                          {product.stock > 0 ? "موجودی " + product.stock.toLocaleString("fa-IR") : "ناموجود"}
+                        </span>
+                        {!!product.variants?.length && <span>{product.variants.length.toLocaleString("fa-IR")} ترکیب</span>}
+                        {!!product.images?.length && <span>{product.images.length.toLocaleString("fa-IR")} عکس</span>}
+                      </div>
+                      {isProductImagePlaceholder(product.imageUrl) && (
+                        <p className="admin-product-warning">تصویر اصلی هنوز انتخاب نشده است</p>
+                      )}
+                    </div>
+                    <div className="admin-product-actions">
+                      <button type="button" onClick={() => startEdit(product)}
+                        className="admin-edit-button" aria-label={"ویرایش " + product.name}>
+                        ویرایش <span aria-hidden="true">↗</span>
+                      </button>
+                      <button type="button" onClick={() => onDelete(product.id)}
+                        className="admin-archive-button" aria-label={"آرشیو " + product.name}>آرشیو</button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="admin-catalog-empty">
+                <span aria-hidden="true">✿</span>
+                <p>{searchQuery ? "محصولی با این عبارت پیدا نشد." : "هنوز محصولی ثبت نشده است."}</p>
+                {searchQuery && <button type="button" onClick={() => setSearchQuery("")}>پاک‌کردن جست‌وجو</button>}
+              </div>
+            )}
+          </div>
+          <div className="admin-catalog-footer">
+            <span>نقلی‌جان · همه‌چیز مرتب</span>
+            <a href="#admin-product-editor">رفتن به فرم محصول <span aria-hidden="true">↑</span></a>
+          </div>
+        </aside>
       </div>
     </>
   );
