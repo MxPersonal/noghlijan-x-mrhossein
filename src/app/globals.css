@@ -1943,3 +1943,80 @@ body,
   .brand-wordmark--admin { width: 51px; }
   .brand-wordmark--footer { width: 57px; }
 }
+
+/* Brand-themed cart icon in the public navigation (light + dark).
+   The header keeps exactly Home, Shop and an accessible cart control. */
+.brand-cart-link {
+  position: relative;
+  display: inline-grid;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  place-items: center;
+  border: 1px solid rgba(155, 74, 100, .22);
+  border-radius: 16px;
+  color: #923e5d;
+  background: linear-gradient(145deg, rgba(255, 246, 229, .96), rgba(250, 200, 208, .88));
+  box-shadow: 0 4px 14px rgba(157, 74, 101, .12), inset 0 1px 0 rgba(255, 255, 255, .74);
+  transition: transform .22s ease, box-shadow .22s ease, background .22s ease;
+}
+.brand-cart-icon {
+  width: 28px;
+  height: 28px;
+  transition: transform .22s ease;
+}
+.brand-cart-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 19px rgba(157, 74, 101, .18), inset 0 1px 0 rgba(255, 255, 255, .74);
+}
+.brand-cart-link:hover .brand-cart-icon { transform: rotate(-5deg); }
+.brand-cart-link.is-active {
+  background: linear-gradient(145deg, #fae5c1, #f7b5c8);
+  border-color: #c76b86;
+  box-shadow: 0 0 0 3px rgba(190, 88, 123, .17);
+}
+.brand-cart-link:focus-visible {
+  outline: 3px solid #b25776;
+  outline-offset: 4px;
+}
+.brand-cart-count {
+  position: absolute;
+  top: -7px;
+  left: -8px;
+  display: inline-grid;
+  min-width: 21px;
+  height: 21px;
+  padding: 0 4px;
+  place-items: center;
+  border-radius: 999px;
+  background: #a13f60;
+  color: #fff;
+  border: 2px solid #fff3e6;
+  font: 800 10px/1 var(--font-vazirmatn), sans-serif;
+  box-shadow: 0 2px 5px rgba(89, 36, 56, .22);
+}
+:root[data-theme="dark"] .brand-cart-link {
+  color: #ffd7ad;
+  border-color: rgba(246, 174, 191, .34);
+  background: linear-gradient(145deg, #59344c, #352a3d);
+  box-shadow: 0 5px 19px rgba(0, 0, 0, .2), inset 0 1px 0 rgba(255, 218, 208, .09);
+}
+:root[data-theme="dark"] .brand-cart-link.is-active {
+  color: #fff2de;
+  border-color: #e29ab1;
+  background: linear-gradient(145deg, #87445e, #51374e);
+  box-shadow: 0 0 0 3px rgba(241, 174, 189, .15);
+}
+:root[data-theme="dark"] .brand-cart-count {
+  background: #ffcf81;
+  color: #3a2431;
+  border-color: #302737;
+}
+@media (max-width: 640px) {
+  .brand-cart-link { width: 43px; height: 43px; flex-basis: 43px; border-radius: 14px; }
+  .brand-cart-icon { width: 26px; height: 26px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .brand-cart-link, .brand-cart-icon { transition: none !important; }
+  .brand-cart-link:hover, .brand-cart-link:hover .brand-cart-icon { transform: none; }
+}
