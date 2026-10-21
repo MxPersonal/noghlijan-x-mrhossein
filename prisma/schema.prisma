@@ -151,3 +151,10 @@ model OrderItem {
   @@index([orderId])
   @@index([productId])
 }
+
+model SiteContent {
+  id        String   @id @default("main")
+  data      Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

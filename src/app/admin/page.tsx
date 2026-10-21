@@ -7,6 +7,8 @@ import { AdminLoginForm } from "@/components/admin/AdminLoginForm";
 import { AdminNav } from "@/components/admin/AdminNav";
 import { AdminProducts } from "@/components/admin/AdminProducts";
 import { AdminOrders } from "@/components/admin/AdminOrders";
+import { SiteContentEditor } from "@/components/admin/SiteContentEditor";
+import { getSiteContent } from "@/lib/site-content";
 import { isMissingVariantStorage } from "@/lib/product-variants";
 
 export const dynamic = "force-dynamic";
@@ -24,7 +26,7 @@ export default async function AdminPage({
 }) {
   const authed = await isAdminAuthenticated();
   const params = await searchParams;
-  const tab = params.tab === "orders" ? "orders" : "products";
+  const tab = params.tab === "orders" ? "orders" : params.tab === "content" ? "content" : "products";
 
   if (!authed) {
     return (
@@ -39,6 +41,25 @@ export default async function AdminPage({
           </div>
           <AdminLoginForm />
         </div>
+      </div>
+    );
+  }
+
+  if (tab === "content") {
+    const content = await getSiteContent();
+    return (
+      <div className="admin-page admin-studio mx-auto w-full max-w-[1440px] px-4 pb-16 pt-5 sm:px-7 lg:px-10">
+        <AdminNav tab="content" />
+        <AdminWelcome
+          tab="content"
+          metrics={[
+            { label: "صفحهٔ قابل ویرایش", value: 3, icon: "✿" },
+            { label: "لینک مسیریاب", value: content.maps.filter(item => !!item.url).length, icon: "⌖" },
+            { label: "شبکهٔ اجتماعی", value: content.socials.filter(item => !!item.url).length, icon: "↗" },
+            { label: "بخش قوانین", value: content.termsSections.length, icon: "▤" },
+          ]}
+        />
+        <SiteContentEditor initial={content} />
       </div>
     );
   }
@@ -142,24 +163,27 @@ function AdminArtwork() {
   );
 }
 
-function AdminWelcome({ tab, metrics }: { tab: "products" | "orders"; metrics: AdminMetric[] }) {
+function AdminWelcome({ tab, metrics }: { tab: "products" | "orders" | "content"; metrics: AdminMetric[] }) {
   const productsTab = tab === "products";
+  const contentTab = tab === "content";
   return (
     <>
       <section className="admin-welcome" aria-labelledby="admin-welcome-title">
         <div className="admin-welcome-copy">
           <p className="admin-eyebrow">✳ NOGHLIJAN · CREATIVE STUDIO</p>
           <h1 id="admin-welcome-title" className="admin-welcome-title">
-            {productsTab ? <>ویترین قشنگ‌تری <span>بسازیم.</span></> : <>سفارش‌ها رو با <span>عشق</span> مدیریت کنیم.</>}
+            {contentTab ? <>داستان نقلی‌جان رو <span>تعریف کن.</span></> : productsTab ? <>ویترین قشنگ‌تری <span>بسازیم.</span></> : <>سفارش‌ها رو با <span>عشق</span> مدیریت کنیم.</>}
           </h1>
           <p className="admin-welcome-subtitle">
-            {productsTab
+            {contentTab
+              ? "متن‌های دربارهٔ ما، تماس، مسیریاب‌ها، شبکه‌های اجتماعی و شرایط فروشگاه را از یک جا مدیریت کن."
+              : productsTab
               ? "محصولات، عکس‌ها، رنگ‌ها و سایزها، همه در یک فضای مرتب و دوست‌داشتنی."
               : "جزئیات خرید، وضعیت سفارش و آماده‌سازی ارسال‌ها در یک نگاه."}
           </p>
           <div className="admin-welcome-actions">
-            <a className="admin-primary-link" href={productsTab ? "#admin-product-editor" : "#admin-order-list"}>
-              {productsTab ? "افزودن یا ویرایش محصول" : "مشاهدهٔ سفارش‌ها"} <span aria-hidden="true">←</span>
+            <a className="admin-primary-link" href={contentTab ? "#site-content-editor" : productsTab ? "#admin-product-editor" : "#admin-order-list"}>
+              {contentTab ? "ویرایش محتوای صفحه‌ها" : productsTab ? "افزودن یا ویرایش محصول" : "مشاهدهٔ سفارش‌ها"} <span aria-hidden="true">←</span>
             </a>
             <Link className="admin-secondary-link" href="/">
               دیدن ویترین فروشگاه <span aria-hidden="true">↗</span>

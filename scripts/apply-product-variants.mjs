@@ -15,8 +15,10 @@ try {
   const sql = await readFile(migration, "utf8");
   await client.query("BEGIN");
   await client.query(sql);
+  const pageMigration = new URL("./sql/site-content.pg.sql", import.meta.url);
+  await client.query(await readFile(pageMigration, "utf8"));
   await client.query("COMMIT");
-  console.log("Product variant tables/columns are ready.");
+  console.log("Product variants and editable site-content tables are ready.");
 } catch (error) {
   try { await client.query("ROLLBACK"); } catch {}
   console.error("Product-variant database migration failed:", error);

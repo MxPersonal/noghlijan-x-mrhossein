@@ -9,7 +9,7 @@ export function Footer() {
 
   return (
     <footer className="glass-header relative z-10 mt-auto border-t border-[#ddab9a]/20">
-      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-2 sm:px-6 lg:grid-cols-3">
+      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
         <div>
           <Link href="/" className="font-display text-4xl text-teal-deep">نقلی‌جان 🌼</Link>
           <p className="mt-3 max-w-xs text-sm leading-7 text-ink-soft">از رنگ‌های شیرین تا لباس‌های نرم؛ دنیایی از انتخاب‌های دوست‌داشتنی برای کوچولوها.</p>
@@ -20,6 +20,14 @@ export function Footer() {
             <Link href="/shop" className="hover:text-teal-deep">فروشگاه</Link>
             <Link href="/shop?gender=دخترانه" className="hover:text-teal-deep">پوشاک دخترانه</Link>
             <Link href="/shop?gender=پسرانه" className="hover:text-teal-deep">پوشاک پسرانه</Link>
+          </div>
+        </div>
+        <div>
+          <h2 className="text-sm font-bold text-ink">دربارهٔ فروشگاه</h2>
+          <div className="mt-4 flex flex-col items-start gap-3 text-sm text-ink-soft">
+            <Link href="/about" className="hover:text-teal-deep">دربارهٔ ما</Link>
+            <Link href="/contact" className="hover:text-teal-deep">ارتباط با ما</Link>
+            <Link href="/terms" className="hover:text-teal-deep">شرایط و قوانین</Link>
           </div>
         </div>
         <div>

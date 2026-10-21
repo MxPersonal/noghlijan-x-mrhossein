@@ -8,6 +8,8 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 const links = [
   { href: "/", label: "خانه" },
   { href: "/shop", label: "فروشگاه" },
+  { href: "/about", label: "دربارهٔ ما" },
+  { href: "/contact", label: "ارتباط با ما" },
   { href: "/cart", label: "سبد خرید" },
 ];
 
@@ -27,7 +29,7 @@ export function Header() {
           </span>
         </Link>
 
-        <nav aria-label="ناوبری اصلی" className="order-3 flex w-full items-center justify-center gap-1 border-t border-[#d8a89a]/15 pt-3 sm:order-none sm:w-auto sm:border-0 sm:pt-0">
+        <nav aria-label="ناوبری اصلی" className="order-3 flex w-full items-center justify-start gap-1 overflow-x-auto whitespace-nowrap border-t border-[#d8a89a]/15 pt-3 sm:order-none sm:w-auto sm:justify-center sm:border-0 sm:pt-0">
           {links.map(({ href, label }) => {
             const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
             return (

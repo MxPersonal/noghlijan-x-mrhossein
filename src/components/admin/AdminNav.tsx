@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
-export function AdminNav({ tab }: { tab: "products" | "orders" }) {
+export function AdminNav({ tab }: { tab: "products" | "orders" | "content" }) {
   const router = useRouter();
   const [pendingAction, setPendingAction] = useState<"logout" | "store" | null>(null);
   const [error, setError] = useState("");
@@ -46,6 +46,10 @@ export function AdminNav({ tab }: { tab: "products" | "orders" }) {
           <Link href="/admin?tab=orders" aria-current={tab === "orders" ? "page" : undefined}
             className={"admin-tab " + (tab === "orders" ? "is-active" : "")}>
             <span aria-hidden="true">◫</span> سفارش‌ها
+          </Link>
+          <Link href="/admin?tab=content" aria-current={tab === "content" ? "page" : undefined}
+            className={"admin-tab " + (tab === "content" ? "is-active" : "")}>
+            <span aria-hidden="true">✎</span> محتوای سایت
           </Link>
         </nav>
         <div className="admin-nav-actions">
