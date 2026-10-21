@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { BrandWordmark } from "@/components/BrandWordmark";
 
 export function AdminNav({ tab }: { tab: "products" | "orders" | "content" }) {
   const router = useRouter();
@@ -28,11 +29,8 @@ export function AdminNav({ tab }: { tab: "products" | "orders" | "content" }) {
     <header className="admin-navbar">
       <div className="admin-nav-brand">
         <Link href="/admin?tab=products" className="admin-nav-logo" aria-label="خانه پنل مدیریت نقلی‌جان">
-          <span className="admin-brand-mark" aria-hidden="true">✿</span>
-          <span>
-            <span className="admin-brand-name">نقلی‌جان</span>
-            <span className="admin-brand-caption">استودیوی مدیریت فروشگاه</span>
-          </span>
+          <BrandWordmark className="brand-wordmark--admin" />
+          <span className="admin-brand-caption">استودیوی مدیریت فروشگاه</span>
         </Link>
         <span className="admin-nav-studio-label" aria-hidden="true">CREATIVE STUDIO</span>
       </div>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { InfoPageHero } from "@/components/InfoPageHero";
+import { BrandWordmark } from "@/components/BrandWordmark";
 import { getSiteContent } from "@/lib/site-content";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +18,7 @@ export default async function AboutPage() {
       <InfoPageHero title={data.aboutTitle} subtitle={data.aboutSubtitle} eyebrow="ABOUT US" shopLabel={data.heroShopButton} />
       <section className="info-about-body" aria-label="آشنایی با نقلی‌جان">
         <div className="info-about-illustration" aria-hidden="true">
-          <span>✿</span><span>نقلی‌جان</span><small>LITTLE MOMENTS</small>
+          <BrandWordmark className="brand-wordmark--about" /><small>LITTLE MOMENTS</small>
         </div>
         <div className="info-about-story">
           <p className="info-section-kicker">{data.aboutStoryLabel}</p>

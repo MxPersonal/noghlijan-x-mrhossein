@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCart } from "@/context/cart";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { BrandWordmark } from "@/components/BrandWordmark";
 
 const links = [
   { href: "/", label: "خانه" },
@@ -21,12 +22,9 @@ export function Header() {
   return (
     <header className={`glass-header relative z-20 border-b border-[#ddab9a]/20 ${pathname === "/" ? "home-header" : ""}`}>
       <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
-        <Link href="/" className="group flex shrink-0 items-center gap-2" aria-label="صفحه اصلی نقلی‌جان">
-          <span aria-hidden="true" className="grid size-10 place-items-center rounded-2xl bg-[#f9d6d8] text-2xl shadow-sm sm:size-12">🌼</span>
-          <span>
-            <span className="block font-display text-3xl leading-none text-teal-deep sm:text-4xl">نقلی‌جان</span>
-            <span className="mt-1 block text-[11px] text-ink-soft">پوشاک بچه‌گانه</span>
-          </span>
+        <Link href="/" className="brand-header-link group flex shrink-0 items-center gap-2" aria-label="صفحه اصلی نقلی‌جان">
+          <BrandWordmark className="brand-wordmark--header" priority />
+          <span className="brand-header-tagline text-ink-soft">پوشاک بچه‌گانه</span>
         </Link>
 
         <nav aria-label="ناوبری اصلی" className="order-3 flex w-full items-center justify-start gap-1 overflow-x-auto whitespace-nowrap border-t border-[#d8a89a]/15 pt-3 sm:order-none sm:w-auto sm:justify-center sm:border-0 sm:pt-0">

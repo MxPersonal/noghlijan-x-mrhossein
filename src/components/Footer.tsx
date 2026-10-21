@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { BrandWordmark } from "@/components/BrandWordmark";
 
 export function Footer() {
   const pathname = usePathname();
@@ -11,7 +12,10 @@ export function Footer() {
     <footer className="glass-header relative z-10 mt-auto border-t border-[#ddab9a]/20">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
         <div>
-          <Link href="/" className="font-display text-4xl text-teal-deep">نقلی‌جان 🌼</Link>
+          <Link href="/" className="brand-footer-link" aria-label="نقلی‌جان، صفحهٔ اصلی">
+            <BrandWordmark className="brand-wordmark--footer" />
+            <span className="brand-footer-caption">پوشاک بچه‌گانه</span>
+          </Link>
           <p className="mt-3 max-w-xs text-sm leading-7 text-ink-soft">از رنگ‌های شیرین تا لباس‌های نرم؛ دنیایی از انتخاب‌های دوست‌داشتنی برای کوچولوها.</p>
         </div>
         <div>

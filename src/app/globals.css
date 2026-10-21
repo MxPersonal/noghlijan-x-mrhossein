@@ -1884,3 +1884,62 @@ body,
   .info-page :where(a,button), .site-settings :where(a,button) { transition: none !important; }
   .info-page :where(a,button):hover { transform: none; }
 }
+
+/* The brand wordmark is vector-traced from the original hero lettering:
+   not a substitute font, so the same letterforms appear in every layout. */
+.brand-wordmark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 66px;
+  aspect-ratio: 440 / 475;
+  line-height: 1;
+  vertical-align: middle;
+}
+.brand-wordmark-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 2px 2px rgba(110, 59, 54, .1));
+}
+.brand-wordmark--header { width: clamp(59px, 5.7vw, 74px); }
+.brand-header-link { text-decoration: none; min-height: 72px; }
+.brand-header-tagline { display: block; max-width: 92px; font-size: 12px; line-height: 1.65; font-weight: 750; }
+.brand-wordmark--admin { width: 64px; }
+.admin-navbar .admin-nav-logo { gap: 12px; }
+.admin-navbar .admin-brand-caption {
+  max-width: 145px;
+  font-size: .74rem;
+  line-height: 1.7;
+  font-weight: 750;
+  color: var(--admin-muted);
+  margin-top: 0;
+}
+.brand-footer-link { display: inline-flex; align-items: center; gap: 12px; color: var(--ink); }
+.brand-wordmark--footer { width: 63px; }
+.brand-footer-caption { font-size: .85rem; font-weight: 750; color: var(--ink-soft); }
+.admin-login-brand { display: inline-flex; align-items: center; gap: 15px; margin-bottom: 10px; }
+.brand-wordmark--login { width: clamp(77px, 8vw, 112px); }
+.admin-login-brand .admin-eyebrow { margin: 0; }
+.brand-wordmark--about { width: min(62%, 225px); }
+.info-about-illustration > .brand-wordmark:first-child {
+  display: inline-flex;
+  width: min(62%, 225px);
+  color: inherit;
+  font-size: initial;
+  line-height: 1;
+  opacity: 1;
+  transform: none;
+  margin: 0 auto 5px;
+}
+:root[data-theme="dark"] .brand-wordmark-image {
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .2));
+}
+@media (max-width: 640px) {
+  .brand-wordmark--header { width: 57px; }
+  .brand-header-link { min-height: 61px; gap: 7px; }
+  .brand-header-tagline { font-size: 11px; max-width: 85px; }
+  .brand-wordmark--admin { width: 51px; }
+  .brand-wordmark--footer { width: 57px; }
+}

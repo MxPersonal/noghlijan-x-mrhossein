@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { BrandWordmark } from "@/components/BrandWordmark";
 import { isAdminAuthenticated } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 import { AdminLoginForm } from "@/components/admin/AdminLoginForm";
@@ -33,7 +34,10 @@ export default async function AdminPage({
       <div className="admin-page admin-studio admin-studio--login mx-auto w-full max-w-[1440px] px-4 py-8 sm:px-7 lg:px-10">
         <div className="admin-login-grid">
           <div className="admin-login-intro">
-            <span className="admin-eyebrow">✿ NOGHLIJAN STUDIO</span>
+            <div className="admin-login-brand">
+              <BrandWordmark className="brand-wordmark--login" />
+              <span className="admin-eyebrow">NOGHLIJAN STUDIO</span>
+            </div>
             <h1 className="admin-intro-title">مدیریتِ دنیای <span>کوچولوها</span></h1>
             <p>همان رنگ‌ها، همان حس خوب؛ اینجا پشت صحنهٔ فروشگاه نقلی‌جان است، جایی که محصولات و سفارش‌ها با خیال راحت مدیریت می‌شوند.</p>
             <AdminArtwork />
