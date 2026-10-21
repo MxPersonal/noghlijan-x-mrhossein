@@ -2,11 +2,12 @@ import Image from "next/image";
 import Link from "next/link";
 
 export function InfoPageHero({
-  title, subtitle, eyebrow, children,
+  title, subtitle, eyebrow, shopLabel, children,
 }: {
   title: string;
   subtitle: string;
   eyebrow: string;
+  shopLabel: string;
   children?: React.ReactNode;
 }) {
   return (
@@ -17,7 +18,7 @@ export function InfoPageHero({
         {subtitle && <p className="info-page-subtitle">{subtitle}</p>}
         <div className="info-page-actions">
           {children}
-          <Link href="/shop" className="info-page-hero-link">دیدن فروشگاه <span aria-hidden="true">↗</span></Link>
+          <Link href="/shop" className="info-page-hero-link">{shopLabel} <span aria-hidden="true">↗</span></Link>
         </div>
       </div>
       <div className="info-page-art" aria-hidden="true">

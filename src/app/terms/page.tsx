@@ -13,21 +13,21 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function TermsPage() {
   const data = await getSiteContent();
   return (
-    <main className="info-page mx-auto w-full max-w-7xl px-4 pb-16 pt-7 sm:px-6">
-      <InfoPageHero title={data.termsTitle} subtitle={data.termsSubtitle} eyebrow="TERMS & CONDITIONS" />
+    <div className="info-page mx-auto w-full max-w-7xl px-4 pb-16 pt-7 sm:px-6">
+      <InfoPageHero title={data.termsTitle} subtitle={data.termsSubtitle} eyebrow="TERMS & CONDITIONS" shopLabel={data.heroShopButton} />
       <section className="info-terms-shell" aria-labelledby="terms-list-title">
         <div className="info-section-heading">
-          <p className="info-section-kicker">راهنمای استفاده از فروشگاه / POLICIES</p>
+          <p className="info-section-kicker">{data.termsSectionLabel}</p>
           <h2 id="terms-list-title">{data.termsUpdatedLabel}</h2>
         </div>
         {!data.termsPublished ? (
           <div className="info-terms-draft" role="status">
             <span aria-hidden="true">✳</span>
             <div>
-              <h3>شرایط و قوانین در حال تدوین است.</h3>
+              <h3>{data.termsDraftTitle}</h3>
               <p>{data.termsNotice}</p>
-              <p>برای اطلاع از شرایط سفارش، مرجوعی یا ارسال، پیش از خرید با فروشگاه در ارتباط باش.</p>
-              <Link href="/contact">راه‌های ارتباطی <span aria-hidden="true">↗</span></Link>
+              <p>{data.termsDraftHelp}</p>
+              <Link href="/contact">{data.termsDraftContactButton} <span aria-hidden="true">↗</span></Link>
             </div>
           </div>
         ) : (
@@ -43,9 +43,9 @@ export default async function TermsPage() {
       </section>
       <div className="info-bottom-banner">
         <span aria-hidden="true">✿</span>
-        <p>سوالی دربارهٔ شرایط خرید داری؟ از صفحهٔ ارتباط با ما پیام بده.</p>
-        <Link href="/contact">ارتباط با ما <span aria-hidden="true">↗</span></Link>
+        <p>{data.termsBottomText}</p>
+        <Link href="/contact">{data.termsBottomLink} <span aria-hidden="true">↗</span></Link>
       </div>
-    </main>
+    </div>
   );
 }

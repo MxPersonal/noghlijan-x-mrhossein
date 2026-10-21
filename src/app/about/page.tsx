@@ -13,15 +13,15 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function AboutPage() {
   const data = await getSiteContent();
   return (
-    <main className="info-page mx-auto w-full max-w-7xl px-4 pb-16 pt-7 sm:px-6">
-      <InfoPageHero title={data.aboutTitle} subtitle={data.aboutSubtitle} eyebrow="ABOUT US" />
+    <div className="info-page mx-auto w-full max-w-7xl px-4 pb-16 pt-7 sm:px-6">
+      <InfoPageHero title={data.aboutTitle} subtitle={data.aboutSubtitle} eyebrow="ABOUT US" shopLabel={data.heroShopButton} />
       <section className="info-about-body" aria-label="آشنایی با نقلی‌جان">
         <div className="info-about-illustration" aria-hidden="true">
           <span>✿</span><span>نقلی‌جان</span><small>LITTLE MOMENTS</small>
         </div>
         <div className="info-about-story">
-          <p className="info-section-kicker">داستان ما / OUR STORY</p>
-          <h2>از رنگ‌های شیرین تا انتخاب‌های دوست‌داشتنی</h2>
+          <p className="info-section-kicker">{data.aboutStoryLabel}</p>
+          <h2>{data.aboutStoryTitle}</h2>
           <div className="info-about-paragraphs">
             {data.aboutParagraphOne && <p>{data.aboutParagraphOne}</p>}
             {data.aboutParagraphTwo && <p>{data.aboutParagraphTwo}</p>}
@@ -31,9 +31,9 @@ export default async function AboutPage() {
       </section>
       <div className="info-bottom-banner">
         <span aria-hidden="true">✳</span>
-        <p>هر روز کوچیک، یه فرصت برای خاطره‌های بزرگ</p>
-        <Link href="/contact">ارتباط با ما <span aria-hidden="true">↗</span></Link>
+        <p>{data.aboutBottomText}</p>
+        <Link href="/contact">{data.aboutBottomLink} <span aria-hidden="true">↗</span></Link>
       </div>
-    </main>
+    </div>
   );
 }

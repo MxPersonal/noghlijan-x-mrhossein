@@ -5,11 +5,26 @@ export type PublicLink = { label: string; url: string };
 export type PolicySection = { heading: string; body: string };
 
 export type SiteContent = {
+  heroShopButton: string;
+  aboutStoryLabel: string;
+  aboutStoryTitle: string;
+  aboutBottomText: string;
+  aboutBottomLink: string;
   aboutTitle: string;
   aboutSubtitle: string;
   aboutParagraphOne: string;
   aboutParagraphTwo: string;
   aboutShopButton: string;
+  contactDetailsLabel: string;
+  contactDetailsTitle: string;
+  contactMapsLabel: string;
+  contactSocialLabel: string;
+  contactAboutButton: string;
+  contactMissingPhone: string;
+  contactMissingEmail: string;
+  contactMissingAddress: string;
+  contactMissingMaps: string;
+  contactMissingSocials: string;
   contactTitle: string;
   contactSubtitle: string;
   contactPhoneLabel: string;
@@ -25,6 +40,12 @@ export type SiteContent = {
   contactClosing: string;
   maps: PublicLink[];
   socials: PublicLink[];
+  termsSectionLabel: string;
+  termsDraftTitle: string;
+  termsDraftHelp: string;
+  termsDraftContactButton: string;
+  termsBottomText: string;
+  termsBottomLink: string;
   termsTitle: string;
   termsSubtitle: string;
   termsUpdatedLabel: string;
@@ -34,6 +55,27 @@ export type SiteContent = {
 };
 
 export const DEFAULT_SITE_CONTENT: SiteContent = {
+  heroShopButton: "دیدن فروشگاه",
+  aboutStoryLabel: "داستان ما / OUR STORY",
+  aboutStoryTitle: "از رنگ‌های شیرین تا انتخاب‌های دوست‌داشتنی",
+  aboutBottomText: "هر روز کوچیک، یه فرصت برای خاطره‌های بزرگ",
+  aboutBottomLink: "ارتباط با ما",
+  contactDetailsLabel: "راه‌های ارتباطی / GET IN TOUCH",
+  contactDetailsTitle: "از اینجا پیدامون کن",
+  contactMapsLabel: "پیدا کردن مسیر / FIND OUR PLACE",
+  contactSocialLabel: "همراه ما باش / SOCIALS",
+  contactAboutButton: "آشنایی بیشتر",
+  contactMissingPhone: "شماره تماس هنوز ثبت نشده است.",
+  contactMissingEmail: "ایمیل هنوز ثبت نشده است.",
+  contactMissingAddress: "آدرس هنوز ثبت نشده است.",
+  contactMissingMaps: "پس از ثبت لینک موقعیت در پنل مدیریت، دکمه‌های مسیریابی اینجا فعال می‌شوند.",
+  contactMissingSocials: "لینک‌های شبکه‌های اجتماعی پس از ثبت در پنل مدیریت، اینجا نمایش داده می‌شوند.",
+  termsSectionLabel: "راهنمای استفاده از فروشگاه / POLICIES",
+  termsDraftTitle: "شرایط و قوانین در حال تدوین است.",
+  termsDraftHelp: "برای اطلاع از شرایط سفارش، مرجوعی یا ارسال، پیش از خرید با فروشگاه در ارتباط باش.",
+  termsDraftContactButton: "راه‌های ارتباطی",
+  termsBottomText: "سوالی دربارهٔ شرایط خرید داری؟ از صفحهٔ ارتباط با ما پیام بده.",
+  termsBottomLink: "ارتباط با ما",
   aboutTitle: "قصهٔ نقلی‌جان",
   aboutSubtitle: "برای لحظه‌های رنگیِ کوچولوها",
   aboutParagraphOne:
@@ -80,6 +122,14 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
 };
 
 const TEXT_LIMITS = {
+  heroShopButton: 90, aboutStoryLabel: 120, aboutStoryTitle: 180,
+  aboutBottomText: 250, aboutBottomLink: 100,
+  contactDetailsLabel: 120, contactDetailsTitle: 150,
+  contactMapsLabel: 120, contactSocialLabel: 120, contactAboutButton: 100,
+  contactMissingPhone: 220, contactMissingEmail: 220, contactMissingAddress: 220,
+  contactMissingMaps: 350, contactMissingSocials: 350,
+  termsSectionLabel: 130, termsDraftTitle: 180, termsDraftHelp: 400,
+  termsDraftContactButton: 100, termsBottomText: 300, termsBottomLink: 100,
   aboutTitle: 120, aboutSubtitle: 240, aboutParagraphOne: 2400, aboutParagraphTwo: 2400,
   aboutShopButton: 80, contactTitle: 120, contactSubtitle: 400,
   contactPhoneLabel: 80, contactPhone: 80, contactEmailLabel: 80, contactEmail: 180,

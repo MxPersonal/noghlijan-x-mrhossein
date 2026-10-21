@@ -16,7 +16,12 @@ const ABOUT_FIELDS: FieldInfo[] = [
   { key: "aboutSubtitle", label: "زیرعنوان کوتاه" },
   { key: "aboutParagraphOne", label: "پاراگراف اول", multiline: true, rows: 6 },
   { key: "aboutParagraphTwo", label: "پاراگراف دوم", multiline: true, rows: 6 },
-  { key: "aboutShopButton", label: "متن دکمهٔ رفتن به فروشگاه" },
+  { key: "aboutShopButton", label: "متن دکمهٔ معرفی محصولات" },
+  { key: "heroShopButton", label: "متن دکمهٔ فروشگاه در بنر بالای صفحه" },
+  { key: "aboutStoryLabel", label: "متن کوتاه بالای معرفی" },
+  { key: "aboutStoryTitle", label: "تیتر بخش معرفی" },
+  { key: "aboutBottomText", label: "جملهٔ پایانی صفحه" },
+  { key: "aboutBottomLink", label: "عنوان دکمهٔ ارتباط در پایین صفحه" },
 ];
 
 const CONTACT_FIELDS: FieldInfo[] = [
@@ -33,6 +38,17 @@ const CONTACT_FIELDS: FieldInfo[] = [
   { key: "socialHeading", label: "عنوان شبکه‌های اجتماعی" },
   { key: "socialDescription", label: "توضیح شبکه‌های اجتماعی" },
   { key: "contactClosing", label: "جملهٔ پایانی صفحه", multiline: true, rows: 2 },
+  { key: "heroShopButton", label: "متن دکمهٔ فروشگاه در بنر بالای صفحه" },
+  { key: "contactDetailsLabel", label: "عنوان کوچک اطلاعات تماس" },
+  { key: "contactDetailsTitle", label: "تیتر اطلاعات تماس" },
+  { key: "contactMapsLabel", label: "متن کوچک بالای مسیریاب‌ها" },
+  { key: "contactSocialLabel", label: "متن کوچک بالای شبکه‌های اجتماعی" },
+  { key: "contactAboutButton", label: "متن دکمهٔ دربارهٔ ما" },
+  { key: "contactMissingPhone", label: "پیام جایگزین در نبود شماره تماس" },
+  { key: "contactMissingEmail", label: "پیام جایگزین در نبود ایمیل" },
+  { key: "contactMissingAddress", label: "پیام جایگزین در نبود آدرس" },
+  { key: "contactMissingMaps", label: "پیام جایگزین در نبود لینک‌های نقشه", multiline: true, rows: 2 },
+  { key: "contactMissingSocials", label: "پیام جایگزین در نبود شبکه‌های اجتماعی", multiline: true, rows: 2 },
 ];
 
 const TERMS_FIELDS: FieldInfo[] = [
@@ -40,6 +56,13 @@ const TERMS_FIELDS: FieldInfo[] = [
   { key: "termsSubtitle", label: "توضیح کوتاه ابتدای صفحه", multiline: true, rows: 3 },
   { key: "termsUpdatedLabel", label: "عنوان بالای متن قوانین" },
   { key: "termsNotice", label: "یادداشت وضعیت پیش‌نویس", multiline: true, rows: 3 },
+  { key: "heroShopButton", label: "متن دکمهٔ فروشگاه در بنر بالای صفحه" },
+  { key: "termsSectionLabel", label: "عنوان کوچک ابتدای قوانین" },
+  { key: "termsDraftTitle", label: "تیتر حالت پیش‌نویس" },
+  { key: "termsDraftHelp", label: "توضیح اضافی در حالت پیش‌نویس", multiline: true, rows: 2 },
+  { key: "termsDraftContactButton", label: "متن دکمهٔ تماس در حالت پیش‌نویس" },
+  { key: "termsBottomText", label: "متن پایانی صفحه", multiline: true, rows: 2 },
+  { key: "termsBottomLink", label: "عنوان لینک تماس در پایین صفحه" },
 ];
 
 function TextFieldInput({
@@ -104,6 +127,7 @@ function LinksEditor({
 export function SiteContentEditor({ initial }: { initial: SiteContent }) {
   const router = useRouter();
   const [draft, setDraft] = useState<SiteContent>(initial);
+  const [saved, setSaved] = useState<SiteContent>(initial);
   const [section, setSection] = useState<"contact" | "about" | "terms">("contact");
   const [isDirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -133,6 +157,7 @@ export function SiteContentEditor({ initial }: { initial: SiteContent }) {
       const result = await response.json() as { content?: SiteContent; error?: string };
       if (!response.ok || !result.content) throw new Error(result.error || "ذخیره ناموفق بود");
       setDraft(result.content);
+      setSaved(result.content);
       setDirty(false);
       setSuccess("همهٔ تغییرات ذخیره شد و اکنون در صفحه‌های عمومی سایت قابل مشاهده است.");
       router.refresh();
@@ -258,7 +283,7 @@ export function SiteContentEditor({ initial }: { initial: SiteContent }) {
             {saving ? "در حال ذخیره..." : "ذخیرهٔ تغییرات"} <span aria-hidden="true">←</span>
           </button>
           <button type="button" disabled={saving || !isDirty}
-            onClick={() => { setDraft(initial); setDirty(false); setError(""); setSuccess(""); }}
+            onClick={() => { setDraft(saved); setDirty(false); setError(""); setSuccess(""); }}
             className="site-settings-revert">بازگرداندن تغییرات ذخیره‌نشده</button>
           <span>برای انتشار لینک‌ها کافی است آدرس معتبر https وارد کنی.</span>
         </div>

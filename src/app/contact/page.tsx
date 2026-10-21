@@ -23,13 +23,13 @@ export default async function ContactPage() {
   const hasAddress = !!data.contactAddress;
 
   return (
-    <main className="info-page mx-auto w-full max-w-7xl px-4 pb-16 pt-7 sm:px-6">
-      <InfoPageHero title={data.contactTitle} subtitle={data.contactSubtitle} eyebrow="CONTACT" />
+    <div className="info-page mx-auto w-full max-w-7xl px-4 pb-16 pt-7 sm:px-6">
+      <InfoPageHero title={data.contactTitle} subtitle={data.contactSubtitle} eyebrow="CONTACT" shopLabel={data.heroShopButton} />
       <div className="info-contact-grid">
         <section className="info-contact-section" aria-labelledby="contact-details-title">
           <div className="info-section-heading">
-            <p className="info-section-kicker">راه‌های ارتباطی / GET IN TOUCH</p>
-            <h2 id="contact-details-title">از اینجا پیدامون کن <span>✿</span></h2>
+            <p className="info-section-kicker">{data.contactDetailsLabel}</p>
+            <h2 id="contact-details-title">{data.contactDetailsTitle} <span>✿</span></h2>
           </div>
           <div className="info-contact-tiles">
             <article className="info-contact-tile">
@@ -37,7 +37,7 @@ export default async function ContactPage() {
               <div>
                 <h3>{data.contactPhoneLabel}</h3>
                 {hasPhone ? <a dir="ltr" href={"tel:" + cleanPhone(data.contactPhone)}>{data.contactPhone}</a>
-                  : <p>شماره تماس هنوز ثبت نشده است.</p>}
+                  : <p>{data.contactMissingPhone}</p>}
               </div>
             </article>
             <article className="info-contact-tile">
@@ -45,7 +45,7 @@ export default async function ContactPage() {
               <div>
                 <h3>{data.contactEmailLabel}</h3>
                 {hasEmail ? <a dir="ltr" href={"mailto:" + data.contactEmail}>{data.contactEmail}</a>
-                  : <p>ایمیل هنوز ثبت نشده است.</p>}
+                  : <p>{data.contactMissingEmail}</p>}
               </div>
             </article>
             <article className="info-contact-tile info-contact-tile--address">
@@ -53,7 +53,7 @@ export default async function ContactPage() {
               <div>
                 <h3>{data.contactAddressLabel}</h3>
                 {hasAddress ? <p className="info-address-value">{data.contactAddress}</p>
-                  : <p>آدرس هنوز ثبت نشده است.</p>}
+                  : <p>{data.contactMissingAddress}</p>}
               </div>
             </article>
           </div>
@@ -61,7 +61,7 @@ export default async function ContactPage() {
 
         <section className="info-map-section" aria-labelledby="contact-map-title">
           <div className="info-section-heading">
-            <p className="info-section-kicker">پیدا کردن مسیر / FIND OUR PLACE</p>
+            <p className="info-section-kicker">{data.contactMapsLabel}</p>
             <h2 id="contact-map-title">{data.mapsHeading}</h2>
             {data.mapsDescription && <p>{data.mapsDescription}</p>}
           </div>
@@ -77,12 +77,12 @@ export default async function ContactPage() {
                 <span>{map.label}</span><span aria-hidden="true">↗</span>
               </a>
             ))}
-          </div> : <p className="info-services-empty">پس از ثبت لینک موقعیت در پنل مدیریت، دکمه‌های مسیریابی اینجا فعال می‌شوند.</p>}
+          </div> : <p className="info-services-empty">{data.contactMissingMaps}</p>}
         </section>
       </div>
       <section className="info-social-section" aria-labelledby="contact-social-title">
         <div className="info-section-heading">
-          <p className="info-section-kicker">همراه ما باش / SOCIALS</p>
+          <p className="info-section-kicker">{data.contactSocialLabel}</p>
           <h2 id="contact-social-title">{data.socialHeading}</h2>
           {data.socialDescription && <p>{data.socialDescription}</p>}
         </div>
@@ -91,12 +91,12 @@ export default async function ContactPage() {
             <a key={index} href={social.url} target="_blank" rel="noopener noreferrer"
               className="info-social-link"><span aria-hidden="true">✿</span>{social.label}<span aria-hidden="true">↗</span></a>
           ))}
-        </div> : <p className="info-services-empty">لینک‌های شبکه‌های اجتماعی پس از ثبت در پنل مدیریت، اینجا نمایش داده می‌شوند.</p>}
+        </div> : <p className="info-services-empty">{data.contactMissingSocials}</p>}
       </section>
       {data.contactClosing && <div className="info-bottom-banner">
         <span aria-hidden="true">✿</span><p>{data.contactClosing}</p>
-        <Link href="/about">آشنایی بیشتر <span aria-hidden="true">↗</span></Link>
+        <Link href="/about">{data.contactAboutButton} <span aria-hidden="true">↗</span></Link>
       </div>}
-    </main>
+    </div>
   );
 }
