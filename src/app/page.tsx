@@ -3,8 +3,9 @@ import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { ProductCard } from "@/components/ProductCard";
 
-// Use the high-quality, locally hosted WebP image to avoid third-party image dependencies.
-const HERO_IMAGE = "/images/noghlijan-hero-high-quality.webp";
+// Each theme has its own local artwork; theme-init.js sets data-theme before paint.
+const HERO_IMAGE_LIGHT = "/images/noghlijan-hero-high-quality.webp";
+const HERO_IMAGE_DARK = "/images/noghlijan-hero-dark-8k.webp";
 
 const categories = [
   { title: "دخترانه", description: "لباس‌های رنگی و گل‌گلی", href: "/shop?gender=دخترانه", emoji: "🎀", color: "bg-[#fbe1e5]" },
@@ -30,33 +31,42 @@ export default async function HomePage() {
             <p className="home-kicker inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold">
               <span aria-hidden="true">✿</span> قصهٔ رنگی کوچولوها
             </p>
-            <h1 id="home-hero-title" className="mt-6 font-display text-5xl leading-[1.35] text-[#593e35] sm:text-6xl xl:text-7xl">
+            <h1 id="home-hero-title" className="home-hero-heading mt-6 font-display text-5xl leading-[1.35] sm:text-6xl xl:text-7xl">
               لباس‌های خوش‌رنگ
-              <span className="block text-[#9a405d]">برای روزهای شیرین</span>
+              <span className="home-hero-accent block">برای روزهای شیرین</span>
             </h1>
-            <p className="mx-auto mt-5 max-w-md text-base leading-9 text-[#664d43] lg:mx-0">
+            <p className="home-hero-description mx-auto mt-5 max-w-md text-base leading-9 lg:mx-0">
               از نقلی‌جان تا خونهٔ شما؛ پوشاک بچه‌گانهٔ نرم، راحت و رنگارنگ برای هر لحظهٔ کودکی.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3 lg:justify-start">
               <Link href="/shop" className="inline-flex min-h-12 items-center justify-center rounded-full bg-[#9a405d] px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_26px_rgba(145,67,89,0.18)] transition hover:bg-[#7c3148]">
                 مشاهدهٔ محصولات <span aria-hidden="true" className="mr-2">←</span>
               </Link>
-              <Link href="/shop?gender=دخترانه" className="home-secondary-button inline-flex min-h-12 items-center justify-center rounded-full px-6 py-3 text-sm font-semibold text-[#593e35] transition hover:bg-white">
+              <Link href="/shop?gender=دخترانه" className="home-secondary-button inline-flex min-h-12 items-center justify-center rounded-full px-6 py-3 text-sm font-semibold transition">
                 خرید دخترانه
               </Link>
-              <Link href="/shop?gender=پسرانه" className="home-secondary-button inline-flex min-h-12 items-center justify-center rounded-full px-6 py-3 text-sm font-semibold text-[#593e35] transition hover:bg-white">
+              <Link href="/shop?gender=پسرانه" className="home-secondary-button inline-flex min-h-12 items-center justify-center rounded-full px-6 py-3 text-sm font-semibold transition">
                 خرید پسرانه
               </Link>
             </div>
           </div>
           <div className="relative order-1 mx-auto w-full max-w-[660px] lg:order-2 lg:-mr-12 lg:w-[61%] lg:max-w-none lg:shrink-0">
             <Image
-              src={HERO_IMAGE}
-              alt="دختر و پسربچه با لباس‌های رنگی نقلی‌جان در فضای پاستلی؛ ضمانت مرجوعی، تضمین کیفیت، احراز هویت و سبد خرید فعال"
+              src={HERO_IMAGE_LIGHT}
+              alt="پوشاک بچه‌گانه نقلی‌جان؛ دختر و پسربچه در صحنه‌ای شاد و پاستلی"
               width={1536}
               height={1536}
               priority
-              className="home-artwork block h-auto w-full"
+              className="home-artwork home-artwork--light h-auto w-full"
+              sizes="(max-width: 1024px) 100vw, (max-width: 1440px) 61vw, 840px"
+            />
+            <Image
+              src={HERO_IMAGE_DARK}
+              alt="پوشاک بچه‌گانه نقلی‌جان؛ دختر و پسربچه در صحنهٔ شب با رنگ‌های تیره"
+              width={8192}
+              height={8192}
+              loading="lazy"
+              className="home-artwork home-artwork--dark h-auto w-full"
               sizes="(max-width: 1024px) 100vw, (max-width: 1440px) 61vw, 840px"
             />
           </div>

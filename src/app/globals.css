@@ -285,6 +285,38 @@ body,
     radial-gradient(ellipse 54% 55% at 98% 39%, rgba(244, 199, 101, .11), transparent 79%),
     linear-gradient(180deg, #d5af8d 0%, #dcb596 28%, #e9bca0 65%, #fff8f0 100%);
 }
+/* The data-theme attribute is shared with the existing theme toggle.
+   Only the artwork for the active theme is displayed and announced. */
+.home-artwork--light {
+  display: block;
+}
+.home-artwork--dark {
+  display: none;
+}
+:root[data-theme="dark"] .home-artwork--light {
+  display: none;
+}
+:root[data-theme="dark"] .home-artwork--dark {
+  display: block;
+}
+.home-hero-heading {
+  color: #593e35;
+}
+.home-hero-accent {
+  color: #9a405d;
+}
+.home-hero-description {
+  color: #664d43;
+}
+:root[data-theme="dark"] .home-hero-heading {
+  color: #fff1e8;
+}
+:root[data-theme="dark"] .home-hero-accent {
+  color: #ffcf9e;
+}
+:root[data-theme="dark"] .home-hero-description {
+  color: #f4ddd2;
+}
 .home-artwork {
   /* Gently remove the square image edges so the scene blends with the page. */
   -webkit-mask-image:
@@ -312,10 +344,27 @@ body,
   box-shadow: 0 4px 18px rgba(93, 54, 47, .06);
 }
 :root[data-theme="dark"] .home-header {
-  background: rgba(41, 33, 41, .94);
+  background: rgba(27, 27, 33, .96);
+  border-bottom-color: rgba(251, 217, 207, .1);
 }
 :root[data-theme="dark"] .home-scene {
-  background: linear-gradient(180deg, #d5af8d 0%, #dcba9c 60%, #251f28 100%);
+  background:
+    radial-gradient(ellipse 47% 44% at 12% 55%, rgba(88, 42, 70, .17), transparent 82%),
+    radial-gradient(ellipse 46% 50% at 90% 48%, rgba(112, 60, 28, .13), transparent 83%),
+    linear-gradient(180deg, #1d1d22 0%, #201e28 48%, #251f28 100%);
+}
+:root[data-theme="dark"] .home-kicker {
+  background: rgba(65, 42, 55, .86);
+  color: #ffe5d7;
+  border-color: rgba(255, 222, 204, .22);
+}
+:root[data-theme="dark"] .home-secondary-button {
+  background: rgba(65, 49, 62, .88);
+  border-color: rgba(248, 213, 204, .25);
+  color: #fff1e8;
+}
+:root[data-theme="dark"] .home-secondary-button:hover {
+  background: #50394b;
 }
 .pastel-kicker {
   background: #ffe2e4;
