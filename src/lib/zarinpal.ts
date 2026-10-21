@@ -1,8 +1,9 @@
-const SANDBOX_REQUEST =
-  "https://sandbox.zarinpal.com/pg/v4/payment/request.json";
-const SANDBOX_VERIFY =
-  "https://sandbox.zarinpal.com/pg/v4/payment/verify.json";
-const SANDBOX_START = "https://sandbox.zarinpal.com/pg/StartPay/";
+// ZarinPal v4: production must never point to the sandbox gateway.
+const useSandbox = () => process.env.NODE_ENV !== "production" && process.env.ZARINPAL_SANDBOX === "true";
+const apiBase = () => useSandbox() ? "https://sandbox.zarinpal.com" : "https://api.zarinpal.com";
+const startPay = () => useSandbox()
+  ? "https://sandbox.zarinpal.com/pg/StartPay/"
+  : "https://www.zarinpal.com/pg/StartPay/";
 
 export function isZarinpalConfigured(): boolean {
   return Boolean(process.env.ZARINPAL_MERCHANT_ID?.trim());
@@ -19,7 +20,7 @@ export async function requestPayment(params: {
     return { error: "MERCHANT_NOT_SET" };
   }
 
-  const res = await fetch(SANDBOX_REQUEST, {
+  const res = await fetch(apiBase() + "/pg/v4/payment/request.json", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -39,7 +40,7 @@ export async function requestPayment(params: {
   if (data.data?.authority && data.data.code === 100) {
     return {
       authority: data.data.authority,
-      paymentUrl: `${SANDBOX_START}${data.data.authority}`,
+      paymentUrl: startPay() + data.data.authority,
     };
   }
 
@@ -55,7 +56,7 @@ export async function verifyPayment(params: {
     return { ok: false, error: "MERCHANT_NOT_SET" };
   }
 
-  const res = await fetch(SANDBOX_VERIFY, {
+  const res = await fetch(apiBase() + "/pg/v4/payment/verify.json", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
