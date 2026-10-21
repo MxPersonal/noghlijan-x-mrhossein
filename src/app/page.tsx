@@ -1,115 +1,220 @@
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { ProductCard } from "@/components/ProductCard";
 import { HomeScrollExperience } from "@/components/HomeScrollExperience";
 
-// Each theme has its own local artwork; theme-init.js sets data-theme before paint.
-const HERO_IMAGE_LIGHT = "/images/noghlijan-hero-high-quality.webp";
-const HERO_IMAGE_DARK = "/images/noghlijan-hero-dark-8k.webp";
-
-const categories = [
-  { title: "دخترانه", description: "لباس‌های رنگی و گل‌گلی", href: "/shop?gender=دخترانه", emoji: "🎀", color: "bg-[#fbe1e5]" },
-  { title: "پسرانه", description: "راحت و پر از شیطنت", href: "/shop?gender=پسرانه", emoji: "🧸", color: "bg-[#e0eef0]" },
-  { title: "همهٔ لباس‌ها", description: "یک دنیا انتخاب دوست‌داشتنی", href: "/shop", emoji: "🌼", color: "bg-[#faedc4]" },
-];
-
 export const dynamic = "force-dynamic";
 
+const HERO_LIGHT = "/images/noghlijan-hero-high-quality.webp";
+const HERO_DARK = "/images/noghlijan-hero-dark-8k.webp";
+
+const journeys = [
+  { number: "۰۱", title: "سلیقه‌ش رو پیدا کن", text: "از بین لباس‌های دخترانه و پسرانه، به استایل موردعلاقهٔ کوچولوت برس.", tone: "rose" },
+  { number: "۰۲", title: "جزئیات رو ببین", text: "تصویر، ردهٔ سنی، قیمت و مشخصات هر محصول رو یک‌جا بررسی کن.", tone: "butter" },
+  { number: "۰۳", title: "آمادهٔ لبخندش شو", text: "انتخابت رو به سبد خرید اضافه کن و مسیر سفارش رو ادامه بده.", tone: "sage" },
+];
+
 export default async function HomePage() {
-  const featured = await prisma.product.findMany({
-    where: { isActive: true },
-    take: 4,
-    orderBy: { createdAt: "desc" },
-    include: { labels: { select: { name: true } } },
-  });
+  const [featured, girlPick, boyPick] = await Promise.all([
+    prisma.product.findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: "desc" },
+      take: 4,
+      include: { labels: { select: { name: true } } },
+    }),
+    prisma.product.findFirst({
+      where: { isActive: true, gender: "دخترانه" },
+      orderBy: { createdAt: "desc" },
+      select: { name: true, imageUrl: true },
+    }),
+    prisma.product.findFirst({
+      where: { isActive: true, gender: "پسرانه" },
+      orderBy: { createdAt: "desc" },
+      select: { name: true, imageUrl: true },
+    }),
+  ]);
 
   return (
-    <div className="home-fullpage">
+    <div className="home-editorial" id="home-experience">
       <HomeScrollExperience />
-      <section data-home-panel className="home-scene home-panel relative isolate overflow-hidden" aria-labelledby="home-hero-title">
-        <div className="relative mx-auto flex max-w-7xl flex-col px-4 pb-10 pt-2 sm:px-6 lg:min-h-0 lg:flex-row lg:items-center lg:gap-3 lg:pb-12 lg:pt-3">
-          <div data-home-reveal className="relative z-10 order-2 mx-auto max-w-lg py-5 text-center lg:order-1 lg:mx-0 lg:w-[43%] lg:shrink-0 lg:py-10 lg:pr-7 lg:text-right">
-            <p className="home-kicker inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold">
-              <span aria-hidden="true">✿</span> قصهٔ رنگی کوچولوها
+
+      <section id="home-intro" data-home-panel className="home-panel home-scene" aria-labelledby="home-title">
+        <div className="home-scene-inner mx-auto w-full max-w-7xl">
+          <div className="home-hero-content">
+            <p data-motion="label" className="home-eyebrow">
+              <span className="home-eyebrow-spark" aria-hidden="true">✳</span>
+              NOGHLIJAN · LITTLE MOMENTS
             </p>
-            <h1 id="home-hero-title" className="home-hero-heading mt-6 font-display text-5xl leading-[1.35] sm:text-6xl xl:text-7xl">
-              لباس‌های خوش‌رنگ
-              <span className="home-hero-accent block">برای روزهای شیرین</span>
+            <h1 data-motion="title" id="home-title" className="home-display">
+              یه دنیا <span>رنگ</span>
+              <span className="home-display-line">برای روزهای کوچیک</span>
             </h1>
-            <p className="home-hero-description mx-auto mt-5 max-w-md text-base leading-9 lg:mx-0">
-              از نقلی‌جان تا خونهٔ شما؛ پوشاک بچه‌گانهٔ نرم، راحت و رنگارنگ برای هر لحظهٔ کودکی.
+            <p data-motion="copy" className="home-lead">
+              دنیای دوست‌داشتنی لباس‌های بچه‌گانه؛ جایی برای انتخاب‌های راحت،
+              رنگ‌های شاد و شیطنت‌های قشنگ هر روز.
             </p>
-            <div className="mt-8 flex flex-wrap justify-center gap-3 lg:justify-start">
-              <Link href="/shop" className="inline-flex min-h-12 items-center justify-center rounded-full bg-[#9a405d] px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_26px_rgba(145,67,89,0.18)] transition hover:bg-[#7c3148]">
-                مشاهدهٔ محصولات <span aria-hidden="true" className="mr-2">←</span>
+            <div data-motion="actions" className="home-hero-actions">
+              <Link href="/shop" className="home-button home-button--solid">
+                کشف لباس‌ها <span aria-hidden="true">↗</span>
               </Link>
-              <Link href="/shop?gender=دخترانه" className="home-secondary-button inline-flex min-h-12 items-center justify-center rounded-full px-6 py-3 text-sm font-semibold transition">
-                خرید دخترانه
-              </Link>
-              <Link href="/shop?gender=پسرانه" className="home-secondary-button inline-flex min-h-12 items-center justify-center rounded-full px-6 py-3 text-sm font-semibold transition">
-                خرید پسرانه
-              </Link>
+              <a href="#home-collections" className="home-button home-button--outline">
+                انتخاب بر اساس استایل <span aria-hidden="true">↓</span>
+              </a>
+            </div>
+            <div data-motion="detail" className="home-hero-footnote">
+              <span className="home-hero-footnote-line" aria-hidden="true" />
+              <span>برای کوچولوهایی که دنیای بزرگی دارن</span>
             </div>
           </div>
-          <div data-home-reveal className="relative order-1 mx-auto w-full max-w-[660px] lg:order-2 lg:-mr-12 lg:w-[61%] lg:max-w-none lg:shrink-0">
-            <Image
-              src={HERO_IMAGE_LIGHT}
-              alt="پوشاک بچه‌گانه نقلی‌جان؛ دختر و پسربچه در صحنه‌ای شاد و پاستلی"
-              width={1536}
-              height={1536}
-              priority
-              className="home-artwork home-artwork--light h-auto w-full"
-              sizes="(max-width: 1024px) 100vw, (max-width: 1440px) 61vw, 840px"
-            />
-            <Image
-              src={HERO_IMAGE_DARK}
-              alt="پوشاک بچه‌گانه نقلی‌جان؛ دختر و پسربچه در صحنهٔ شب با رنگ‌های تیره"
-              width={8192}
-              height={8192}
-              loading="lazy"
-              className="home-artwork home-artwork--dark h-auto w-full"
-              sizes="(max-width: 1024px) 100vw, (max-width: 1440px) 61vw, 840px"
-            />
+
+          <div className="home-hero-media" data-motion="visual">
+            <div className="home-hero-art" data-parallax>
+              <Image
+                src={HERO_LIGHT}
+                alt="دختر و پسربچه در پوشاک رنگارنگ نقلی‌جان با نمادهای ضمانت مرجوعی، تضمین کیفیت و خرید"
+                width={1536}
+                height={1536}
+                priority
+                className="home-artwork home-artwork--light"
+                sizes="(max-width: 1023px) 96vw, (max-width: 1440px) 57vw, 780px"
+              />
+              <Image
+                src={HERO_DARK}
+                alt="نسخهٔ شبانهٔ تصویر پوشاک بچه‌گانهٔ نقلی‌جان"
+                width={8192}
+                height={8192}
+                loading="lazy"
+                className="home-artwork home-artwork--dark"
+                sizes="(max-width: 1023px) 96vw, (max-width: 1440px) 57vw, 780px"
+              />
+            </div>
           </div>
+          <span aria-hidden="true" className="home-scene-serial">01 / 04</span>
         </div>
       </section>
 
-      <section data-home-panel className="home-panel mx-auto w-full max-w-6xl px-4 py-16 sm:px-6" aria-labelledby="categories-title">
-        <div data-home-reveal className="mb-7">
-          <p className="text-sm font-semibold text-teal-deep">از کجا شروع کنیم؟</p>
-          <h2 id="categories-title" className="mt-1 font-display text-4xl text-ink">دسته‌بندی‌های دوست‌داشتنی</h2>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-3">
-          {categories.map(({ title, description, href, emoji, color }) => (
-            <Link key={href} href={href} data-home-reveal className="pastel-category group flex items-center gap-4 rounded-[2rem] p-5 sm:flex-col sm:p-7 sm:text-center">
-              <span aria-hidden="true" className={`grid size-20 shrink-0 place-items-center rounded-[1.7rem] text-4xl sm:size-24 ${color}`}>{emoji}</span>
-              <div>
-                <h3 className="font-display text-3xl text-ink">{title}</h3>
-                <p className="mt-1 text-sm leading-7 text-ink-soft">{description}</p>
-                <span className="mt-2 inline-block text-sm font-semibold text-teal-deep group-hover:underline">مشاهدهٔ محصولات ←</span>
+      <section id="home-collections" data-home-panel className="home-panel home-collections" aria-labelledby="collections-title">
+        <div className="home-panel-inner mx-auto w-full max-w-7xl">
+          <div className="home-section-head">
+            <div>
+              <p data-motion="label" className="home-section-kicker"><span>۰۲</span> / دنیای انتخاب</p>
+              <h2 data-motion="title" id="collections-title" className="home-section-title">
+                هر کوچولو، <em>یه استایل.</em>
+              </h2>
+            </div>
+            <p data-motion="copy" className="home-section-intro">
+              با یک انتخاب ساده شروع کن. لباس‌های رنگی و راحتی که
+              برای هر روز کوچولوت منتظرن.
+            </p>
+          </div>
+
+          <div className="home-collection-grid">
+            <Link data-motion="card" href="/shop?gender=دخترانه" className="home-collection-card home-collection-card--rose group">
+              <span className="home-collection-watermark" aria-hidden="true">01</span>
+              <div className="home-collection-copy">
+                <p className="home-collection-kicker">FOR HER · دخترانه</p>
+                <h3>پر از رنگ<br />و خنده</h3>
+                <span className="home-collection-cta">کشف دخترانه <span aria-hidden="true">↗</span></span>
+              </div>
+              <div className="home-collection-visual" aria-hidden="true">
+                <span className="home-collection-visual-orbit" />
+                {girlPick?.imageUrl ? (
+                  <Image src={girlPick.imageUrl} alt="" fill
+                    unoptimized={/^https?:\/\//i.test(girlPick.imageUrl)}
+                    className="home-collection-product" sizes="(max-width: 1023px) 45vw, 300px" />
+                ) : <span className="home-collection-illustration">✿</span>}
               </div>
             </Link>
-          ))}
+
+            <Link data-motion="card" href="/shop?gender=پسرانه" className="home-collection-card home-collection-card--sky group">
+              <span className="home-collection-watermark" aria-hidden="true">02</span>
+              <div className="home-collection-copy">
+                <p className="home-collection-kicker">FOR HIM · پسرانه</p>
+                <h3>برای کلی<br />ماجراجویی</h3>
+                <span className="home-collection-cta">کشف پسرانه <span aria-hidden="true">↗</span></span>
+              </div>
+              <div className="home-collection-visual" aria-hidden="true">
+                <span className="home-collection-visual-orbit" />
+                {boyPick?.imageUrl ? (
+                  <Image src={boyPick.imageUrl} alt="" fill
+                    unoptimized={/^https?:\/\//i.test(boyPick.imageUrl)}
+                    className="home-collection-product" sizes="(max-width: 1023px) 45vw, 300px" />
+                ) : <span className="home-collection-illustration">✦</span>}
+              </div>
+            </Link>
+          </div>
+          <div data-motion="detail" className="home-collection-footer">
+            <span>انتخابِ راحت، لبخندِ بیشتر</span>
+            <Link href="/shop">دیدن همهٔ لباس‌ها <span aria-hidden="true">←</span></Link>
+          </div>
         </div>
       </section>
 
-      <section data-home-panel className="home-panel mx-auto w-full max-w-6xl px-4 pb-20 pt-12 sm:px-6" aria-labelledby="new-products-title">
-        <div data-home-reveal className="mb-8 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="text-sm font-semibold text-teal-deep">تازه رسیدن!</p>
-            <h2 id="new-products-title" className="mt-1 font-display text-4xl text-ink">نقلی‌های تازه</h2>
-            <p className="mt-2 text-sm text-ink-soft">جدیدترین انتخاب‌های خوش‌رنگ فروشگاه</p>
+      <section id="home-new" data-home-panel className="home-panel home-new-arrivals" aria-labelledby="new-products-title">
+        <div className="home-panel-inner mx-auto w-full max-w-7xl">
+          <div className="home-section-head home-section-head--products">
+            <div>
+              <p data-motion="label" className="home-section-kicker"><span>۰۳</span> / تازه رسیده‌ها</p>
+              <h2 data-motion="title" id="new-products-title" className="home-section-title">
+                تازه از راه <em>رسیدن!</em>
+              </h2>
+            </div>
+            <div data-motion="copy" className="home-products-intro">
+              <p>محبوب‌های جدید برای روزهایی که قراره خاص باشن.</p>
+              <Link href="/shop" className="home-inline-link">تمام محصولات <span aria-hidden="true">↗</span></Link>
+            </div>
           </div>
-          <Link href="/shop" className="rounded-full border border-teal/30 px-5 py-2.5 text-sm font-semibold text-teal-deep transition hover:bg-cream-deep">دیدن همهٔ محصولات ←</Link>
+
+          {featured.length ? (
+            <div className="home-featured-grid">
+              {featured.map((product, index) => (
+                <div key={product.id} data-motion="card" className="home-featured-item">
+                  <span className="home-featured-number" aria-hidden="true">0{index + 1}</span>
+                  <ProductCard {...product} />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div data-motion="card" className="home-products-empty">
+              <span aria-hidden="true" className="home-products-empty-flower">✿</span>
+              <div><h3>یه عالمه خوشگلی در راهه</h3><p>به‌زودی لباس‌های جدید اینجا ظاهر می‌شن.</p></div>
+              <Link href="/shop" className="home-inline-link">ورود به فروشگاه ←</Link>
+            </div>
+          )}
+
+          <div data-motion="detail" className="home-product-bottom">
+            <span>هر انتخاب، یک خاطرهٔ قشنگ</span>
+            <span aria-hidden="true">✳</span>
+            <span>نُقلی‌جان</span>
+          </div>
         </div>
-        {featured.length > 0 ? (
-          <div data-home-reveal className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
-            {featured.map((product) => <ProductCard key={product.id} {...product} />)}
+      </section>
+
+      <section id="home-how" data-home-panel className="home-panel home-journey" aria-labelledby="journey-title">
+        <div className="home-panel-inner home-journey-inner mx-auto w-full max-w-7xl">
+          <div className="home-journey-intro">
+            <p data-motion="label" className="home-section-kicker"><span>۰۴</span> / خرید راحت</p>
+            <h2 data-motion="title" id="journey-title" className="home-section-title">
+              از یه انتخاب <em>کوچولو</em><br /> تا کلی خوشحالی.
+            </h2>
+            <p data-motion="copy" className="home-section-intro">
+              هیچ پیچیدگی‌ای لازم نیست. لباس‌ها رو ببین، مناسب‌ترینش رو انتخاب کن و به سبد خریدت اضافه کن.
+            </p>
+            <div data-motion="actions">
+              <Link href="/shop" className="home-button home-button--solid">شروع خرید <span aria-hidden="true">↗</span></Link>
+            </div>
           </div>
-        ) : (
-          <div data-home-reveal className="pastel-feature rounded-[2rem] p-10 text-center text-ink-soft">محصولات جدید به‌زودی اینجا نمایش داده می‌شوند.</div>
-        )}
+          <div className="home-journey-steps">
+            {journeys.map((step) => (
+              <div data-motion="card" className={"home-journey-step home-journey-step--" + step.tone} key={step.number}>
+                <span className="home-journey-number">{step.number}</span>
+                <div><h3>{step.title}</h3><p>{step.text}</p></div>
+                <span className="home-journey-star" aria-hidden="true">✳</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
     </div>
   );
