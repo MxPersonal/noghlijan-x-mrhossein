@@ -40,6 +40,7 @@ export default function CheckoutPage() {
           address: form.get("address"),
           items: items.map((i) => ({
             productId: i.productId,
+            variantId: i.variantId,
             quantity: i.quantity,
           })),
         }),

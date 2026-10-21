@@ -12,6 +12,8 @@ type Props = {
     price: number;
     imageUrl: string;
     stock: number;
+    variantId?: string;
+    variantLabel?: string;
   };
 };
 
@@ -23,6 +25,8 @@ export function AddToCartButton({ product }: Props) {
     if (product.stock <= 0) return;
     addItem({
       productId: product.id,
+      variantId: product.variantId,
+      variantLabel: product.variantLabel,
       name: product.name,
       slug: product.slug,
       price: product.price,

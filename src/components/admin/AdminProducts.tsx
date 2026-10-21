@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { ProductImportPanel } from "@/components/admin/ProductImportPanel";
+import { ProductVariantsEditor, newVariant, type VariantDraft } from "@/components/admin/ProductVariantsEditor";
 import { StoreIntegrationsPanel } from "@/components/admin/StoreIntegrationsPanel";
 import { formatPrice } from "@/lib/format";
 import { isProductImagePlaceholder } from "@/lib/product-images";
@@ -40,6 +41,7 @@ type Product = {
   images: ProductImage[];
   tags: ProductTerm[];
   labels: ProductTerm[];
+  variants: { id: string; colorName: string | null; colorHex: string | null; size: string | null; sku: string | null; price: number | null; stock: number; attributes: unknown; images: unknown }[];
 };
 
 type ProductForm = {
@@ -52,6 +54,7 @@ type ProductForm = {
   gender: string;
   stock: string;
   images: ProductImage[];
+  variants: VariantDraft[];
   tags: string;
   labels: string;
   seoTitle: string;
@@ -69,6 +72,7 @@ const emptyForm: ProductForm = {
   gender: "یونیسکس",
   stock: "0",
   images: [],
+  variants: [],
   tags: "",
   labels: "",
   seoTitle: "",
@@ -98,6 +102,20 @@ function splitTerms(value: string): string[] {
         .filter(Boolean),
     ),
   );
+}
+
+function attributesFromText(value: string): Record<string, string> {
+  const parsed: Record<string, string> = {};
+  for (const rawLine of value.split(/[\r\n]+/)) {
+    const line = rawLine.trim();
+    if (!line) continue;
+    const index = line.indexOf("=");
+    if (index < 1 || !line.slice(index + 1).trim()) {
+      throw Error("ویژگی‌های سفارشی باید در هر خط به فرم نام=مقدار باشند");
+    }
+    parsed[line.slice(0, index).trim()] = line.slice(index + 1).trim();
+  }
+  return parsed;
 }
 
 export function AdminProducts({ initial }: { initial: Product[] }) {
@@ -134,6 +152,14 @@ export function AdminProducts({ initial }: { initial: Product[] }) {
       gender: product.gender,
       stock: String(product.stock),
       images: productImages(product),
+      variants: (product.variants ?? []).map(v => ({
+        id: v.id, colorName: v.colorName || "", colorHex: v.colorHex || "#e9a3b5",
+        size: v.size || "", sku: v.sku || "", price: v.price == null ? "" : String(v.price),
+        stock: String(v.stock),
+        attributesText: v.attributes && typeof v.attributes === "object" && !Array.isArray(v.attributes)
+          ? Object.entries(v.attributes as Record<string,string>).map(([key,val]) => key + "=" + val).join("\n") : "",
+        images: Array.isArray(v.images) ? v.images.filter((url): url is string => typeof url === "string") : [],
+      })),
       tags: product.tags.map(({ name }) => name).join("، "),
       labels: product.labels.map(({ name }) => name).join("، "),
       seoTitle: product.seoTitle ?? "",
@@ -270,6 +296,24 @@ export function AdminProducts({ initial }: { initial: Product[] }) {
       return;
     }
 
+    let variants;
+    try {
+      variants = form.variants.map((variant) => ({
+        id: variant.id,
+        colorName: variant.colorName.trim() || null,
+        colorHex: variant.colorName.trim() ? variant.colorHex : null,
+        size: variant.size.trim() || null,
+        sku: variant.sku.trim() || null,
+        price: variant.price.trim() === "" ? null : Number(variant.price),
+        stock: Number(variant.stock),
+        attributes: attributesFromText(variant.attributesText),
+        images: variant.images,
+      }));
+      if (variants.some(v => v.images.length === 0)) throw Error("هر ترکیب ویژگی باید حداقل یک تصویر داشته باشد");
+    } catch (problem) {
+      setError(problem instanceof Error ? problem.message : "اطلاعات ترکیب‌ها نامعتبر است");
+      return;
+    }
     setSaving(true);
     setError("");
     const payload = {
@@ -280,6 +324,7 @@ export function AdminProducts({ initial }: { initial: Product[] }) {
       price: Number(form.price),
       imageUrl: primaryImage,
       images: form.images.map(({ url, altText }) => ({ url, altText })),
+      variants,
       category: form.category,
       ageGroup: form.ageGroup,
       gender: form.gender,
@@ -454,6 +499,13 @@ export function AdminProducts({ initial }: { initial: Product[] }) {
               </p>
             )}
           </fieldset>
+
+          <ProductVariantsEditor
+            value={form.variants}
+            onChange={(variants) => setForm((current) => ({ ...current, variants }))}
+            gallery={form.images}
+            disabled={saving || uploading}
+          />
 
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block text-xs text-ink-soft">

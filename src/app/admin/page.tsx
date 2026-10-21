@@ -5,6 +5,7 @@ import { AdminLoginForm } from "@/components/admin/AdminLoginForm";
 import { AdminNav } from "@/components/admin/AdminNav";
 import { AdminProducts } from "@/components/admin/AdminProducts";
 import { AdminOrders } from "@/components/admin/AdminOrders";
+import { isMissingVariantStorage } from "@/lib/product-variants";
 
 export const dynamic = "force-dynamic";
 
@@ -52,15 +53,31 @@ export default async function AdminPage({
     );
   }
 
-  const products = await prisma.product.findMany({
-    where: { isActive: true },
-    orderBy: { createdAt: "desc" },
-    include: {
-      images: { orderBy: { sortOrder: "asc" } },
-      tags: { orderBy: { name: "asc" } },
-      labels: { orderBy: { name: "asc" } },
-    },
-  });
+  let products;
+  try {
+    products = await prisma.product.findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: "desc" },
+      include: {
+        images: { orderBy: { sortOrder: "asc" } },
+        variants: { orderBy: { sortOrder: "asc" } },
+        tags: { orderBy: { name: "asc" } },
+        labels: { orderBy: { name: "asc" } },
+      },
+    });
+  } catch (error) {
+    if (!isMissingVariantStorage(error)) throw error;
+    const legacy = await prisma.product.findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: "desc" },
+      include: {
+        images: { orderBy: { sortOrder: "asc" } },
+        tags: { orderBy: { name: "asc" } },
+        labels: { orderBy: { name: "asc" } },
+      },
+    });
+    products = legacy.map(p => ({ ...p, variants: [] }));
+  }
 
   return (
     <div className="admin-page mx-auto max-w-6xl px-4 py-10 sm:px-6">

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useCart } from "@/context/cart";
+import { cartItemKey, useCart } from "@/context/cart";
 import { formatPrice } from "@/lib/format";
 
 export default function CartPage() {
@@ -29,7 +29,7 @@ export default function CartPage() {
       <ul className="mt-8 space-y-4">
         {items.map((item) => (
           <li
-            key={item.productId}
+            key={cartItemKey(item)}
             className="glass-surface flex gap-4 rounded-2xl p-4"
           >
             <div className="relative h-24 w-20 shrink-0 overflow-hidden rounded-xl bg-mint">
@@ -52,18 +52,19 @@ export default function CartPage() {
                 </Link>
                 <button
                   type="button"
-                  onClick={() => removeItem(item.productId)}
+                  onClick={() => removeItem(item.productId, item.variantId)}
                   className="text-xs text-peach hover:underline"
                 >
                   حذف
                 </button>
               </div>
+              {item.variantLabel && <p className="text-xs text-teal-deep">مدل انتخابی: {item.variantLabel}</p>}
               <p className="text-sm text-ink-soft">{formatPrice(item.price)}</p>
               <div className="mt-auto flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() =>
-                    updateQuantity(item.productId, item.quantity - 1)
+                    updateQuantity(item.productId, item.quantity - 1, item.variantId)
                   }
                   className="flex h-8 w-8 items-center justify-center rounded-lg bg-cream-deep text-ink"
                 >
@@ -75,7 +76,7 @@ export default function CartPage() {
                 <button
                   type="button"
                   onClick={() =>
-                    updateQuantity(item.productId, item.quantity + 1)
+                    updateQuantity(item.productId, item.quantity + 1, item.variantId)
                   }
                   className="flex h-8 w-8 items-center justify-center rounded-lg bg-cream-deep text-ink"
                 >

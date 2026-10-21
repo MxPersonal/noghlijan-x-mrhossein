@@ -12,6 +12,8 @@ import {
 
 export type CartItem = {
   productId: string;
+  variantId?: string;
+  variantLabel?: string;
   name: string;
   slug: string;
   price: number;
@@ -25,12 +27,15 @@ type CartContextValue = {
   total: number;
   bump: boolean;
   addItem: (item: Omit<CartItem, "quantity">, qty?: number) => void;
-  removeItem: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  removeItem: (productId: string, variantId?: string) => void;
+  updateQuantity: (productId: string, quantity: number, variantId?: string) => void;
   clearCart: () => void;
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
+export function cartItemKey(item: { productId: string; variantId?: string }) {
+  return item.productId + ":" + (item.variantId || "");
+}
 const STORAGE_KEY = "clothe-store-cart";
 
 export function CartProvider({ children }: { children: ReactNode }) {
@@ -57,10 +62,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const addItem = useCallback(
     (item: Omit<CartItem, "quantity">, qty = 1) => {
       setItems((prev) => {
-        const existing = prev.find((p) => p.productId === item.productId);
+        const existing = prev.find((p) => cartItemKey(p) === cartItemKey(item));
         if (existing) {
           return prev.map((p) =>
-            p.productId === item.productId
+            cartItemKey(p) === cartItemKey(item)
               ? { ...p, quantity: p.quantity + qty }
               : p,
           );
@@ -72,15 +77,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
     [triggerBump],
   );
 
-  const removeItem = useCallback((productId: string) => {
-    setItems((prev) => prev.filter((p) => p.productId !== productId));
+  const removeItem = useCallback((productId: string, variantId?: string) => {
+    setItems((prev) => prev.filter((p) => cartItemKey(p) !== cartItemKey({ productId, variantId })));
   }, []);
 
-  const updateQuantity = useCallback((productId: string, quantity: number) => {
+  const updateQuantity = useCallback((productId: string, quantity: number, variantId?: string) => {
     setItems((prev) =>
       prev
         .map((p) =>
-          p.productId === productId ? { ...p, quantity: Math.max(0, quantity) } : p,
+          cartItemKey(p) === cartItemKey({ productId, variantId }) ? { ...p, quantity: Math.max(0, quantity) } : p,
         )
         .filter((p) => p.quantity > 0),
     );

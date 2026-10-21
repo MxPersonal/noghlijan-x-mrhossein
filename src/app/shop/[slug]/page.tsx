@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AddToCartButton } from "@/components/AddToCartButton";
-import { ProductGallery } from "@/components/ProductGallery";
-import { formatPrice } from "@/lib/format";
+import { ProductVariantPicker } from "@/components/ProductVariantPicker";
+import { isMissingVariantStorage, variantImages } from "@/lib/product-variants";
+
 import { prisma } from "@/lib/prisma";
 import { absoluteUrl } from "@/lib/site-url";
 
@@ -53,15 +53,33 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProductPage({ params }: Props) {
   const { slug } = await params;
-  const product = await prisma.product.findFirst({
-    where: { slug, isActive: true },
-    include: PRODUCT_INCLUDE,
-  });
+  let product;
+  try {
+    product = await prisma.product.findFirst({
+      where: { slug, isActive: true },
+      include: { ...PRODUCT_INCLUDE, variants: { orderBy: { sortOrder: "asc" } } },
+    });
+  } catch (error) {
+    if (!isMissingVariantStorage(error)) throw error;
+    const legacy = await prisma.product.findFirst({
+      where: { slug, isActive: true }, include: PRODUCT_INCLUDE,
+    });
+    product = legacy ? { ...legacy, variants: [] } : null;
+  }
   if (!product) notFound();
 
   const gallery = product.images.length > 0
     ? product.images.map(({ url, altText }) => ({ url, altText }))
     : [{ url: product.imageUrl, altText: product.name }];
+  const variants = product.variants.map((variant) => ({
+    id: variant.id, colorName: variant.colorName, colorHex: variant.colorHex,
+    size: variant.size, price: variant.price, stock: variant.stock, sku: variant.sku,
+    attributes: variant.attributes && typeof variant.attributes === "object" && !Array.isArray(variant.attributes)
+      ? Object.fromEntries(Object.entries(variant.attributes).filter((entry): entry is [string, string] =>
+          typeof entry[1] === "string")) : {},
+    images: variantImages(variant.images),
+  }));
+  const stock = variants.length ? variants.reduce((sum, v) => sum + v.stock, 0) : product.stock;
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -76,7 +94,7 @@ export default async function ProductPage({ params }: Props) {
       price: product.price * 10,
       priceCurrency: "IRR",
       availability:
-        product.stock > 0
+        stock > 0
           ? "https://schema.org/InStock"
           : "https://schema.org/OutOfStock",
       itemCondition: "https://schema.org/NewCondition",
@@ -95,38 +113,16 @@ export default async function ProductPage({ params }: Props) {
         ← بازگشت به فروشگاه
       </Link>
 
-      <div className="grid gap-8 lg:grid-cols-2">
-        <ProductGallery images={gallery} productName={product.name} />
-
-        <div className="glass-surface animate-fade-up flex flex-col justify-center rounded-3xl p-6 sm:p-8">
-          {product.labels.length > 0 ? (
-            <div className="mb-3 flex flex-wrap gap-2">
-              {product.labels.map(({ id, name }) => (
-                <span key={id} className="rounded-full bg-peach/20 px-3 py-1 text-xs font-medium text-ink">
-                  {name}
-                </span>
-              ))}
-            </div>
-          ) : null}
-          <p className="text-sm text-ink-soft">
-            {product.category} · {product.ageGroup} · {product.gender}
-          </p>
-          <h1 className="mt-2 font-display text-4xl text-ink sm:text-5xl">{product.name}</h1>
-          <p className="mt-4 leading-8 text-ink-soft">{product.description}</p>
-          {product.tags.length > 0 ? (
-            <div className="mt-4 flex flex-wrap gap-2" aria-label="تگ‌های محصول">
-              {product.tags.map(({ id, name }) => (
-                <span key={id} className="rounded-full bg-mint px-3 py-1 text-xs text-ink-soft">#{name}</span>
-              ))}
-            </div>
-          ) : null}
-          <p className="mt-5 text-2xl text-teal-deep">{formatPrice(product.price)}</p>
-          <p className="mt-1 text-sm text-ink-soft">
-            موجودی: {product.stock.toLocaleString("fa-IR")} عدد
-          </p>
-          <div className="mt-8"><AddToCartButton product={product} /></div>
-        </div>
-      </div>
+      <ProductVariantPicker
+        product={{
+          id: product.id, name: product.name, slug: product.slug, description: product.description,
+          price: product.price, stock, imageUrl: product.imageUrl,
+          category: product.category, ageGroup: product.ageGroup, gender: product.gender,
+          labels: product.labels, tags: product.tags,
+        }}
+        gallery={gallery}
+        variants={variants}
+      />
     </div>
   );
 }

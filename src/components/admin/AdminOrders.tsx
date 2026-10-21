@@ -15,6 +15,7 @@ type Order = {
   items: {
     quantity: number;
     unitPrice: number;
+    variantLabel: string | null;
     product: { name: string };
   }[];
 };
@@ -78,7 +79,7 @@ export function AdminOrders({ initial }: { initial: Order[] }) {
           <ul className="mt-3 space-y-1 border-t border-ink/6 pt-3 text-sm text-ink-soft">
             {order.items.map((item, i) => (
               <li key={i}>
-                {item.product.name} × {item.quantity} —{" "}
+                {item.product.name}{item.variantLabel ? " · " + item.variantLabel : ""} × {item.quantity} —{" "}
                 {formatPrice(item.unitPrice * item.quantity)}
               </li>
             ))}
