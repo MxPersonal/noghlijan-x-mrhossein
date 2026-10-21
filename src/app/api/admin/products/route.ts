@@ -195,12 +195,37 @@ export async function PUT(request: Request) {
     }
     if (body.stock !== undefined) data.stock = nonNegativeInteger(body.stock, "موجودی");
     if (variants !== undefined) {
-      data.variants = { deleteMany: {}, create: variants.map((variant, sortOrder) => ({
-        ...(variant.id ? { id: variant.id } : {}),
+      const currentVariants = await prisma.productVariant.findMany({
+        where: { productId: id },
+        select: { id: true },
+      });
+      const knownIds = new Set(currentVariants.map(v => v.id));
+      const submittedIds = new Set(variants.map(v => v.id).filter((id): id is string => !!id));
+      if ([...submittedIds].some(variantId => !knownIds.has(variantId)))
+        throw Error("شناسهٔ یکی از ترکیب‌های ویرایش‌شده معتبر نیست");
+
+      const dataFor = (variant: (typeof variants)[number], sortOrder: number) => ({
         colorName: variant.colorName, colorHex: variant.colorHex, size: variant.size,
         sku: variant.sku, price: variant.price, stock: variant.stock, sortOrder,
         attributes: variant.attributes, images: variant.images,
-      })) };
+      });
+
+      data.variants = {
+        deleteMany: currentVariants
+          .filter(v => !submittedIds.has(v.id))
+          .map(v => ({ id: v.id })),
+        update: variants
+          .map((variant, sortOrder) => ({ variant, sortOrder }))
+          .filter(({ variant }) => !!variant.id)
+          .map(({ variant, sortOrder }) => ({
+            where: { id: variant.id! },
+            data: dataFor(variant, sortOrder),
+          })),
+        create: variants
+          .map((variant, sortOrder) => ({ variant, sortOrder }))
+          .filter(({ variant }) => !variant.id)
+          .map(({ variant, sortOrder }) => dataFor(variant, sortOrder)),
+      };
       if (variants.length) data.stock = variants.reduce((sum, variant) => sum + variant.stock, 0);
     }
 
