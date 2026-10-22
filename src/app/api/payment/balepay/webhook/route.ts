@@ -61,9 +61,21 @@ export async function POST(req: Request) {
           const availableVariants = new Map(variants.map(variant => [variant.id, variant.stock]));
           const totals = new Map<string, number>();
           for (const item of order.items) totals.set(item.productId, (totals.get(item.productId) ?? 0) + item.quantity);
-          approved = [...totals].every(([id,qty]) => (availableProducts.get(id) ?? 0) >= qty) &&
+          const stockAvailable = [...totals].every(([id,qty]) => (availableProducts.get(id) ?? 0) >= qty) &&
             order.items.every(item => !item.variantId ||
               (availableVariants.get(item.variantId) ?? 0) >= item.quantity);
+          if (stockAvailable) {
+            // The official docs state this ID is repeated as telegram_payment_charge_id
+            // after the successful wallet payment. Bind it to this order before approving.
+            const captured = await prisma.order.updateMany({
+              where: {
+                id: order.id, status: "PENDING", paymentProvider: "balepay",
+                OR: [{ refId: null }, { refId: queryId }],
+              },
+              data: { refId: queryId },
+            });
+            approved = captured.count === 1;
+          }
         }
       }
     } catch (error) {
@@ -106,7 +118,8 @@ export async function POST(req: Request) {
   if (order.status === "PAID" || order.status === "SHIPPED") return NextResponse.json({ ok: true });
   const rial = correctRialAmount(order.total);
   if (order.status !== "PENDING" || !rial || rial !== payment.total_amount ||
-      !order.authority || order.authority === "bale:" + orderId)
+      !order.authority || order.authority === "bale:" + orderId ||
+      order.refId !== transactionId)
     return NextResponse.json({ error: "Order payment mismatch" }, { status: 409 });
   try {
     const verified = await inquireBaleTransaction(transactionId);
