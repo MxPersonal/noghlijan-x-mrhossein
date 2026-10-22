@@ -11,6 +11,7 @@ export function CustomerAvatarMenu() {
   const [user, setUser] = useState<User|null>(null);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [checking, setChecking] = useState(true);
   const root = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const router = useRouter();
@@ -20,8 +21,8 @@ export function CustomerAvatarMenu() {
     function refresh() {
       fetch("/api/customer/me", { cache: "no-store" }).then(async res => {
         const data = res.ok ? await res.json() as { customer:User } : null;
-        if (mounted) setUser(data?.customer ?? null);
-      }).catch(() => { if (mounted) setUser(null); });
+        if (mounted) { setUser(data?.customer ?? null); setChecking(false); }
+      }).catch(() => { if (mounted) { setUser(null); setChecking(false); } });
     }
     refresh();
     window.addEventListener("customer-session-changed", refresh);
@@ -49,6 +50,7 @@ export function CustomerAvatarMenu() {
       setUser(null);
       setOpen(false);
       window.dispatchEvent(new Event("customer-session-changed"));
+      window.dispatchEvent(new Event("customer-signed-out"));
       router.push("/");
       router.refresh();
     } catch { alert("خروج از حساب انجام نشد. دوباره تلاش کنید."); }
@@ -74,19 +76,24 @@ export function CustomerAvatarMenu() {
         <div className="customer-menu-popover" role="menu" aria-label="میان‌برهای حساب کاربری">
           <div className="customer-menu-hello">
             <span aria-hidden="true">✿</span>
-            <div><strong>{user ? user.fullName : "سلام، خوش اومدی!"}</strong>
-              <small>{user ? (user.phoneVerified ? user.mobile : "شماره موبایل تأیید نشده") : "به خانوادهٔ نقلی‌جان بپیوند"}</small>
+            <div>
+              <strong>{checking ? "در حال بررسی حساب..." : user ? user.fullName : "مهمان عزیز سلام ، خوش اومدی !"}</strong>
+              <small>{checking ? "کمی صبر کنید" : user ? (user.phoneVerified ? user.mobile : "شماره موبایل تأیید نشده") : "ورود/ثبت نام"}</small>
             </div>
           </div>
           <div className="customer-menu-items">
-            <Link role="menuitem" href={user ? "/account" : "/login?next=%2Faccount"}><span>◉</span> اطلاعات حساب کاربری</Link>
-            <Link role="menuitem" href="/cart"><span>▤</span> سبد خرید</Link>
-            <Link role="menuitem" href={user ? "/checkout" : "/login?next=%2Fcheckout"}><span>♡</span> تسویه‌حساب</Link>
-            {user ? (
-              <button role="menuitem" type="button" disabled={busy} onClick={() => void logout()}>
-                <span>↩</span> {busy ? "در حال خروج..." : "خروج از حساب کاربری"}
-              </button>
-            ) : <Link role="menuitem" href="/login"><span>↗</span> ورود / ثبت‌نام</Link>}
+            {!checking && (user ? (
+              <>
+                <Link role="menuitem" href="/account"><span>◉</span> اطلاعات حساب کاربری</Link>
+                <Link role="menuitem" href="/cart"><span>▤</span> سبد خرید</Link>
+                <Link role="menuitem" href="/checkout"><span>♡</span> تسویه‌حساب</Link>
+                <button role="menuitem" type="button" disabled={busy} onClick={() => void logout()}>
+                  <span>↩</span> {busy ? "در حال خروج..." : "خروج از حساب کاربری"}
+                </button>
+              </>
+            ) : (
+              <Link role="menuitem" href="/login"><span>↗</span> ورود / ثبت‌نام</Link>
+            ))}
           </div>
         </div>
       )}
