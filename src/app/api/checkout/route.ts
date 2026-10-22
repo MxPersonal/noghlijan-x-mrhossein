@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { isZarinpalConfigured, requestPayment } from "@/lib/zarinpal";
+import { availableMethod, startPayment, type PaymentMethod } from "@/lib/payment-providers";
 import { variantLabel } from "@/lib/product-variants";
 import { getCustomer, normalizeMobile, normalizePostal, sameOrigin } from "@/lib/customer-auth";
 
 type Body = {
+  paymentMethod?: PaymentMethod;
   address?: string;
   postalCode?: string;
   recipientIsOther?: boolean;
@@ -36,9 +37,10 @@ export async function POST(req: Request) {
       !Array.isArray(items) || items.length === 0 || items.length > 50) {
     return NextResponse.json({ error: "آدرس کامل، کد پستی ۱۰ رقمی و در صورت نیاز اطلاعات گیرنده الزامی و معتبرند" }, { status: 422 });
   }
-  // Never mark production purchases as paid when a payment gateway is missing.
-  if (process.env.NODE_ENV === "production" && !isZarinpalConfigured()) {
-    return NextResponse.json({ error: "درگاه پرداخت فروشگاه هنوز فعال نشده است؛ لطفاً بعداً تلاش کنید." }, { status: 503 });
+  const method = body.paymentMethod;
+  if (!method || !["zarinpal", "aqayepardakht", "balepay", "nowpayments"].includes(method) ||
+      !availableMethod(method)) {
+    return NextResponse.json({ error: "روش پرداخت انتخاب‌شده فعال یا قابل استفاده نیست" }, { status: 422 });
   }
 
   // Prices, availability, and variant ownership are always verified server-side.
@@ -117,6 +119,7 @@ export async function POST(req: Request) {
       recipientName,
       recipientPhone,
       customerId: customer.id,
+      paymentProvider: method,
       total,
       status: "PENDING",
       items: { create: orderItems },
@@ -141,59 +144,23 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "آدرس امن بازگشت پرداخت تنظیم نشده است" }, { status: 503 });
   }
 
-  if (!isZarinpalConfigured()) {
-    await prisma.$transaction(async (tx) => {
-      for (const item of orderItems) {
-        const product = await tx.product.updateMany({
-          where: { id: item.productId, stock: { gte: item.quantity } },
-          data: { stock: { decrement: item.quantity } },
-        });
-        if (product.count !== 1) throw new Error("موجودی کافی نیست");
-        if (item.variantId) {
-          const variant = await tx.productVariant.updateMany({
-            where: { id: item.variantId, productId: item.productId, stock: { gte: item.quantity } },
-            data: { stock: { decrement: item.quantity } },
-          });
-          if (variant.count !== 1) throw new Error("موجودی رنگ یا سایز کافی نیست");
-        }
-      }
-      await tx.order.update({
-        where: { id: order.id },
-        data: { status: "PAID", refId: `DEMO-${order.id.slice(-6)}` },
-      });
+  try {
+    const payment = await startPayment({
+      method, orderId: order.id, totalToman: total, mobile: phone, baseUrl: appUrl,
     });
-
-    return NextResponse.json({
-      orderId: order.id,
-      demo: true,
-    });
-  }
-
-  const payment = await requestPayment({
-    amount: total,
-    description: `سفارش نقلی‌جان ${order.id}`,
-    callbackUrl: `${appUrl}/payment/verify`,
-    mobile: phone,
-  });
-
-  if ("error" in payment) {
+    if (!payment.ok) {
+      await prisma.order.update({ where: { id: order.id }, data: { status: "FAILED" } });
+      return NextResponse.json({ error: payment.error }, { status: 502 });
+    }
     await prisma.order.update({
       where: { id: order.id },
-      data: { status: "FAILED" },
+      data: { authority: payment.authority, paymentUsdAmount: payment.usdAmount ?? null },
     });
-    return NextResponse.json(
-      { error: "خطا در اتصال به درگاه پرداخت" },
-      { status: 502 },
-    );
+    return NextResponse.json({ orderId: order.id, paymentUrl: payment.url, provider: method });
+  } catch (error) {
+    console.error("Payment initiation failed", order.id, method, error);
+    await prisma.order.updateMany({ where: { id: order.id, status: "PENDING" },
+      data: { status: "FAILED" } });
+    return NextResponse.json({ error: "ارتباط با درگاه انتخاب‌شده برقرار نشد." }, { status: 502 });
   }
-
-  await prisma.order.update({
-    where: { id: order.id },
-    data: { authority: payment.authority },
-  });
-
-  return NextResponse.json({
-    orderId: order.id,
-    paymentUrl: payment.paymentUrl,
-  });
 }

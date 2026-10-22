@@ -1,199 +1,59 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { isZarinpalConfigured, verifyPayment } from "@/lib/zarinpal";
+import { getCustomer } from "@/lib/customer-auth";
+import { verifyPayment } from "@/lib/zarinpal";
+import { finalizeOrder } from "@/lib/payment-providers";
 import { formatPrice } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
-type SearchParams = Promise<{
-  Authority?: string;
-  Status?: string;
-  demo?: string;
-  orderId?: string;
-}>;
-
 export default async function PaymentVerifyPage({
   searchParams,
-}: {
-  searchParams: SearchParams;
-}) {
-  const params = await searchParams;
-
-  if (params.demo === "1" && params.orderId) {
-    const order = await prisma.order.findUnique({
-      where: { id: params.orderId },
-    });
-
-    if (!order || order.status !== "PAID") {
-      return (
-        <Result
-          ok={false}
-          title="سفارش یافت نشد"
-          message="سفارش دمو معتبر نیست."
-        />
-      );
-    }
-
-    return (
-      <Result
-        ok
-        title="پرداخت موفق (حالت دمو)"
-        message={`سفارش شما ثبت شد. چون درگاه زرین‌پال تنظیم نشده، پرداخت به‌صورت آزمایشی تأیید شده است. کد پیگیری: ${order.refId}`}
-        amount={order.total}
-      />
-    );
-  }
-
-  const authority = params.Authority;
-  const status = params.Status;
-
-  if (!authority) {
-    return (
-      <Result
-        ok={false}
-        title="اطلاعات ناقص"
-        message="شناسه پرداخت دریافت نشد."
-      />
-    );
-  }
-
-  if (status !== "OK") {
-    const order = await prisma.order.findFirst({ where: { authority } });
-    if (order && order.status === "PENDING") {
-      await prisma.order.update({
-        where: { id: order.id },
-        data: { status: "FAILED" },
-      });
-    }
-    return (
-      <Result
-        ok={false}
-        title="پرداخت لغو شد"
-        message="پرداخت توسط کاربر لغو شد یا ناموفق بود."
-      />
-    );
-  }
-
-  if (!isZarinpalConfigured()) {
-    return (
-      <Result
-        ok={false}
-        title="درگاه تنظیم نشده"
-        message="Merchant ID زرین‌پال تعریف نشده است."
-      />
-    );
-  }
-
+}: { searchParams: Promise<{ Authority?: string; Status?: string }> }) {
+  const { Authority, Status } = await searchParams;
+  const customer = await getCustomer();
+  if (!customer) return <Result title="ابتدا وارد حساب شوید"
+    detail="برای دیدن وضعیت سفارش باید وارد حساب خودتان شوید." href="/login?next=%2Faccount" />;
+  if (!Authority || Authority.length > 140) return <Result title="شناسهٔ پرداخت نامعتبر است"
+    detail="برای پیگیری وضعیت، به قسمت سفارش‌های من مراجعه کنید." />;
   const order = await prisma.order.findFirst({
-    where: { authority },
-    include: { items: true },
+    where: { authority: Authority, paymentProvider: "zarinpal", customerId: customer.id },
   });
-
-  if (!order) {
-    return (
-      <Result ok={false} title="سفارش یافت نشد" message="سفارشی با این شناسه نیست." />
-    );
-  }
-
-  if (order.status === "PAID") {
-    return (
-      <Result
-        ok
-        title="پرداخت قبلاً تأیید شده"
-        message={`کد پیگیری: ${order.refId}`}
-        amount={order.total}
-      />
-    );
-  }
-
-  const verified = await verifyPayment({
-    authority,
-    amount: order.total,
-  });
-
-  if (!verified.ok) {
-    await prisma.order.update({
-      where: { id: order.id },
-      data: { status: "FAILED" },
-    });
-    return (
-      <Result
-        ok={false}
-        title="تأیید پرداخت ناموفق"
-        message="درگاه پرداخت را تأیید نکرد."
-      />
-    );
-  }
+  if (!order) return <Result title="سفارش پیدا نشد"
+    detail="پرداختی با این مشخصات در حساب شما ثبت نشده است." />;
+  if (order.status === "PAID" || order.status === "SHIPPED") return <Result ok title="پرداخت تأیید شده"
+    detail={"شناسهٔ پیگیری: " + (order.refId ?? "ثبت شده")} amount={order.total} />;
+  if (order.status !== "PENDING") return <Result title="درخواست پرداخت ناموفق یا منقضی است"
+    detail="می‌توانید وضعیت سفارش را در حساب خود ببینید." />;
+  if (Status !== "OK") return <Result title="پرداخت تکمیل نشد"
+    detail="اگر وجهی کسر شده، وضعیت نهایی را از بانک و پشتیبانی درگاه پیگیری کنید." />;
 
   try {
-    await prisma.$transaction(async (tx) => {
-      // Guard against concurrent or repeated gateway callbacks.
-      const claimed = await tx.order.updateMany({
-        where: { id: order.id, status: "PENDING" },
-        data: { status: "PAID", refId: verified.refId },
-      });
-      if (claimed.count === 0) return;
-      for (const item of order.items) {
-        const stock = await tx.product.updateMany({
-          where: { id: item.productId, stock: { gte: item.quantity } },
-          data: { stock: { decrement: item.quantity } },
-        });
-        if (stock.count !== 1) throw new Error("Product stock is no longer sufficient");
-        if (item.variantId) {
-          const variant = await tx.productVariant.updateMany({
-            where: { id: item.variantId, productId: item.productId, stock: { gte: item.quantity } },
-            data: { stock: { decrement: item.quantity } },
-          });
-          if (variant.count !== 1) throw new Error("Variant stock is no longer sufficient");
-        }
-      }
-    });
+    const verified = await verifyPayment({ authority: Authority, amount: order.total });
+    if (!verified.ok) return <Result title="پرداخت هنوز تأیید نشده"
+      detail="تا زمانی که پاسخ معتبر درگاه دریافت نشود، سفارش پرداخت‌شده محسوب نمی‌شود." />;
+    const finalized = await finalizeOrder(order.id, "zarinpal", verified.refId);
+    return finalized
+      ? <Result ok title="پرداخت موفق" detail={"کد پیگیری: " + verified.refId} amount={order.total} />
+      : <Result title="پرداخت نیازمند بررسی است" detail="پرداخت تأیید شده، اما ثبت نهایی موجودی نیازمند بررسی پشتیبانی است. لطفاً دوباره پرداخت نکنید." />;
   } catch (error) {
-    console.error("Paid order stock reservation failed", order.id, error);
-    return <Result ok={false} title="سفارش نیازمند بررسی است"
-      message="پرداخت تأیید شده اما موجودی باید توسط پشتیبانی بررسی شود. لطفاً شماره سفارش را نگه دارید." />;
+    console.error("ZarinPal verification error", error);
+    return <Result title="بررسی پرداخت موقتاً ممکن نیست"
+      detail="پرداخت جدید انجام ندهید؛ ابتدا وضعیت سفارش را از حساب خود پیگیری کنید." />;
   }
-
-  return (
-    <Result
-      ok
-      title="پرداخت موفق"
-      message={`سفارش شما ثبت شد. کد پیگیری: ${verified.refId}`}
-      amount={order.total}
-    />
-  );
 }
 
-function Result({
-  ok,
-  title,
-  message,
-  amount,
-}: {
-  ok: boolean;
-  title: string;
-  message: string;
-  amount?: number;
-}) {
+function Result({ title, detail, ok = false, amount, href = "/account" }:
+  { title: string; detail: string; ok?: boolean; amount?: number; href?: string }) {
   return (
     <div className="glass-surface mx-auto my-16 max-w-lg rounded-3xl px-6 py-12 text-center sm:px-10">
-      <div
-        className={`mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full text-2xl text-white ${
-          ok ? "bg-teal" : "bg-peach"
-        }`}
-      >
-        {ok ? "✓" : "!"}
-      </div>
+      <div className={"mx-auto mb-6 grid size-16 place-items-center rounded-full text-3xl text-white " +
+        (ok ? "bg-teal" : "bg-peach")}>{ok ? "✓" : "!"}</div>
       <h1 className="font-display text-3xl text-ink">{title}</h1>
-      <p className="mt-3 leading-7 text-ink-soft">{message}</p>
-      {amount != null ? (
-        <p className="mt-2 text-teal-deep">{formatPrice(amount)}</p>
-      ) : null}
-      <Link
-        href="/shop"
-        className="mt-8 inline-block rounded-xl bg-teal px-6 py-3 text-sm font-medium text-white hover:bg-teal-deep"
-      >
-        بازگشت به فروشگاه
+      <p className="mt-3 leading-8 text-ink-soft">{detail}</p>
+      {amount != null && <p className="mt-3 text-teal-deep">{formatPrice(amount)}</p>}
+      <Link href={href} className="mt-8 inline-block rounded-xl bg-teal px-6 py-3 text-sm font-medium text-white">
+        مشاهدهٔ حساب کاربری
       </Link>
     </div>
   );

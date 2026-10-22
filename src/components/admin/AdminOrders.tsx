@@ -11,6 +11,8 @@ type Order = {
   phone: string;
   address: string;
   refId: string | null;
+  paymentProvider: string | null;
+  paymentReviewReason: string | null;
   postalCode: string | null;
   recipientIsOther: boolean;
   recipientName: string | null;
@@ -120,6 +122,12 @@ export function AdminOrders({ initial }: { initial: Order[] }) {
                   <div>
                     <span className="admin-order-small-label">کد سفارش</span>
                     <p className="admin-order-code" dir="ltr">{order.id.slice(-10).toUpperCase()}</p>
+                  </div>
+                  <div>
+                    <span className="admin-order-small-label">روش پرداخت</span>
+                    <p>{({ zarinpal: "زرین‌پال", aqayepardakht: "آقای پرداخت",
+                      balepay: "بله‌پی", nowpayments: "رمزارز" } as Record<string, string>)[order.paymentProvider ?? ""] ?? "قدیمی / نامشخص"}</p>
+                    {order.paymentReviewReason && <p className="admin-order-payment-alert">{order.paymentReviewReason}</p>}
                   </div>
                   <div>
                     <span className="admin-order-small-label">مبلغ سفارش</span>

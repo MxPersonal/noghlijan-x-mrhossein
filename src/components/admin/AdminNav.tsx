@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { BrandWordmark } from "@/components/BrandWordmark";
 
-export function AdminNav({ tab }: { tab: "products" | "orders" | "content" }) {
+export function AdminNav({ tab }: { tab: "products" | "orders" | "content" | "payments" }) {
   const router = useRouter();
   const [pendingAction, setPendingAction] = useState<"logout" | "store" | null>(null);
   const [error, setError] = useState("");
@@ -48,6 +48,10 @@ export function AdminNav({ tab }: { tab: "products" | "orders" | "content" }) {
           <Link href="/admin?tab=content" aria-current={tab === "content" ? "page" : undefined}
             className={"admin-tab " + (tab === "content" ? "is-active" : "")}>
             <span aria-hidden="true">✎</span> محتوای سایت
+          </Link>
+          <Link href="/admin?tab=payments" aria-current={tab === "payments" ? "page" : undefined}
+            className={"admin-tab " + (tab === "payments" ? "is-active" : "")}>
+            <span aria-hidden="true">◈</span> درگاه‌های پرداخت
           </Link>
         </nav>
         <div className="admin-nav-actions">

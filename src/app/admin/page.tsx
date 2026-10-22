@@ -9,6 +9,8 @@ import { AdminNav } from "@/components/admin/AdminNav";
 import { AdminProducts } from "@/components/admin/AdminProducts";
 import { AdminOrders } from "@/components/admin/AdminOrders";
 import { SiteContentEditor } from "@/components/admin/SiteContentEditor";
+import { AdminPaymentMethods } from "@/components/admin/AdminPaymentMethods";
+import { paymentMethods } from "@/lib/payment-providers";
 import { getSiteContent } from "@/lib/site-content";
 import { isMissingVariantStorage } from "@/lib/product-variants";
 
@@ -27,7 +29,7 @@ export default async function AdminPage({
 }) {
   const authed = await isAdminAuthenticated();
   const params = await searchParams;
-  const tab = params.tab === "orders" ? "orders" : params.tab === "content" ? "content" : "products";
+  const tab = params.tab === "orders" ? "orders" : params.tab === "content" ? "content" : params.tab === "payments" ? "payments" : "products";
 
   if (!authed) {
     return (
@@ -64,6 +66,25 @@ export default async function AdminPage({
           ]}
         />
         <SiteContentEditor initial={content} />
+      </div>
+    );
+  }
+
+  if (tab === "payments") {
+    const methods = paymentMethods();
+    return (
+      <div className="admin-page admin-studio mx-auto w-full max-w-[1440px] px-4 pb-16 pt-5 sm:px-7 lg:px-10">
+        <AdminNav tab="payments" />
+        <AdminWelcome
+          tab="payments"
+          metrics={[
+            { label: "روش پرداخت", value: methods.length, icon: "◈" },
+            { label: "درگاه فعال", value: methods.filter(m => m.available).length, icon: "✓" },
+            { label: "منتظر اتصال", value: methods.filter(m => !m.available).length, icon: "◷" },
+            { label: "پرداخت رمزارزی", value: methods.some(m => m.id === "nowpayments" && m.available) ? 1 : 0, icon: "₿" },
+          ]}
+        />
+        <AdminPaymentMethods methods={methods} />
       </div>
     );
   }
@@ -167,27 +188,30 @@ function AdminArtwork() {
   );
 }
 
-function AdminWelcome({ tab, metrics }: { tab: "products" | "orders" | "content"; metrics: AdminMetric[] }) {
+function AdminWelcome({ tab, metrics }: { tab: "products" | "orders" | "content" | "payments"; metrics: AdminMetric[] }) {
   const productsTab = tab === "products";
   const contentTab = tab === "content";
+  const paymentsTab = tab === "payments";
   return (
     <>
       <section className="admin-welcome" aria-labelledby="admin-welcome-title">
         <div className="admin-welcome-copy">
           <p className="admin-eyebrow">✳ NOGHLIJAN · CREATIVE STUDIO</p>
           <h1 id="admin-welcome-title" className="admin-welcome-title">
-            {contentTab ? <>داستان نقلی‌جان رو <span>تعریف کن.</span></> : productsTab ? <>ویترین قشنگ‌تری <span>بسازیم.</span></> : <>سفارش‌ها رو با <span>عشق</span> مدیریت کنیم.</>}
+            {paymentsTab ? <>پرداختی امن و <span>راحت.</span></> : contentTab ? <>داستان نقلی‌جان رو <span>تعریف کن.</span></> : productsTab ? <>ویترین قشنگ‌تری <span>بسازیم.</span></> : <>سفارش‌ها رو با <span>عشق</span> مدیریت کنیم.</>}
           </h1>
           <p className="admin-welcome-subtitle">
-            {contentTab
+            {paymentsTab
+              ? "وضعیت زرین‌پال، آقای پرداخت، بله‌پی و پرداخت رمزارزی را ببین و تنظیمات اتصال را بررسی کن."
+              : contentTab
               ? "متن‌های دربارهٔ ما، تماس، مسیریاب‌ها، شبکه‌های اجتماعی و شرایط فروشگاه را از یک جا مدیریت کن."
               : productsTab
               ? "محصولات، عکس‌ها، رنگ‌ها و سایزها، همه در یک فضای مرتب و دوست‌داشتنی."
               : "جزئیات خرید، وضعیت سفارش و آماده‌سازی ارسال‌ها در یک نگاه."}
           </p>
           <div className="admin-welcome-actions">
-            <a className="admin-primary-link" href={contentTab ? "#site-content-editor" : productsTab ? "#admin-product-editor" : "#admin-order-list"}>
-              {contentTab ? "ویرایش محتوای صفحه‌ها" : productsTab ? "افزودن یا ویرایش محصول" : "مشاهدهٔ سفارش‌ها"} <span aria-hidden="true">←</span>
+            <a className="admin-primary-link" href={paymentsTab ? "#admin-payment-methods" : contentTab ? "#site-content-editor" : productsTab ? "#admin-product-editor" : "#admin-order-list"}>
+              {paymentsTab ? "مشاهدهٔ درگاه‌ها" : contentTab ? "ویرایش محتوای صفحه‌ها" : productsTab ? "افزودن یا ویرایش محصول" : "مشاهدهٔ سفارش‌ها"} <span aria-hidden="true">←</span>
             </a>
             <Link className="admin-secondary-link" href="/">
               دیدن ویترین فروشگاه <span aria-hidden="true">↗</span>

@@ -5,10 +5,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/cart";
 import { formatPrice } from "@/lib/format";
+import type { MethodOption, PaymentMethod } from "@/lib/payment-providers";
 
 type Customer = { fullName:string; mobile:string; address:string|null; postalCode:string|null; phoneVerified:boolean };
 
-export function CustomerCheckout({ customer }: { customer: Customer }) {
+export function CustomerCheckout({ customer, methods }: { customer: Customer; methods: MethodOption[] }) {
   const { items, total, clearCart } = useCart();
   const router=useRouter();
   const [address,setAddress]=useState(customer.address ?? "");
@@ -18,6 +19,8 @@ export function CustomerCheckout({ customer }: { customer: Customer }) {
   const [recipientPhone,setRecipientPhone]=useState("");
   const [saveAddress,setSaveAddress]=useState(true);
   const [loading,setLoading]=useState(false);
+  const [paymentMethod,setPaymentMethod]=useState<PaymentMethod>(methods.find(m => m.available)?.id ?? "zarinpal");
+  const canPay = methods.some(m => m.id === paymentMethod && m.available);
   const [error,setError]=useState("");
 
   async function submit(event:FormEvent<HTMLFormElement>) {
@@ -31,7 +34,7 @@ export function CustomerCheckout({ customer }: { customer: Customer }) {
           address,postalCode,recipientIsOther:other,
           recipientName:other?recipientName:undefined,
           recipientPhone:other?recipientPhone:undefined,
-          saveAddress,
+          saveAddress, paymentMethod,
           items:items.map(i=>({productId:i.productId,variantId:i.variantId,quantity:i.quantity})),
         }),
       });
@@ -40,11 +43,6 @@ export function CustomerCheckout({ customer }: { customer: Customer }) {
       if (data.paymentUrl) {
         clearCart();
         window.location.assign(data.paymentUrl);
-        return;
-      }
-      if (data.demo && data.orderId) {
-        clearCart();
-        router.push("/payment/verify?demo=1&orderId="+encodeURIComponent(data.orderId));
         return;
       }
       throw Error("پاسخ نامعتبر از سرور");
@@ -102,11 +100,40 @@ export function CustomerCheckout({ customer }: { customer: Customer }) {
               </label>
             </div>}
           </div>
+          <fieldset className="customer-payment-methods">
+            <legend>انتخاب روش پرداخت</legend>
+            <p className="customer-hint">روش پرداخت دلخواهت را انتخاب کن. تنها درگاه‌های آماده برای پرداخت فعال هستند.</p>
+            <div className="customer-payment-list">
+              {methods.map(method => (
+                <label key={method.id}
+                  className={"customer-payment-option" + (paymentMethod === method.id && method.available ? " is-selected" : "") +
+                    (!method.available ? " is-unavailable" : "")}>
+                  <input type="radio" name="payment-method" value={method.id} disabled={!method.available}
+                    checked={paymentMethod === method.id && method.available}
+                    onChange={() => setPaymentMethod(method.id)} />
+                  <span aria-hidden="true" className="customer-payment-glyph">
+                    {method.id === "zarinpal" ? "✦" : method.id === "aqayepardakht" ? "◈" :
+                      method.id === "balepay" ? "♡" : "₿"}
+                  </span>
+                  <span className="customer-payment-labels">
+                    <strong>{method.title}</strong>
+                    <small>{method.description}</small>
+                  </span>
+                  <span className={"customer-payment-state" + (!method.available ? " disabled" : "")}>
+                    {method.available ? "آمادهٔ پرداخت" : "در انتظار فعال‌سازی"}
+                  </span>
+                </label>
+              ))}
+            </div>
+            {methods.every(m => !m.available) && (
+              <p role="status" className="customer-auth-notice">درگاه‌های پرداخت فروشگاه هنوز تنظیم نشده‌اند. سفارش بدون دریافت پرداخت نهایی نمی‌شود.</p>
+            )}
+          </fieldset>
           {!customer.phoneVerified && <p className="customer-auth-notice">
             شمارهٔ موبایل حساب هنوز از طریق پیامک تأیید نشده است.
           </p>}
           {error && <p role="alert" className="customer-error">{error}</p>}
-          <button disabled={loading} type="submit" className="customer-primary-button">
+          <button disabled={loading || !canPay} type="submit" className="customer-primary-button">
             {loading?"در حال ثبت...":"تأیید آدرس و ادامهٔ پرداخت"} <span aria-hidden="true">←</span>
           </button>
         </form>
