@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "آدرس کامل، کد پستی ۱۰ رقمی و در صورت نیاز اطلاعات گیرنده الزامی و معتبرند" }, { status: 422 });
   }
   const method = body.paymentMethod;
-  if (!method || !["zarinpal", "aqayepardakht", "balepay", "nowpayments"].includes(method) ||
+  if (!method || !["zarinpal", "aqayepardakht", "balepay", "nowpayments", "ircryptopay"].includes(method) ||
       !availableMethod(method)) {
     return NextResponse.json({ error: "روش پرداخت انتخاب‌شده فعال یا قابل استفاده نیست" }, { status: 422 });
   }
