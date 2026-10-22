@@ -1,6 +1,7 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
 import { isZarinpalConfigured, requestPayment as requestZarinpal } from "@/lib/zarinpal";
+import { baleMiniAppUrl, isBaleWalletConfigured } from "@/lib/bale-pay";
 
 export type PaymentMethod = "zarinpal" | "aqayepardakht" | "balepay" | "nowpayments" | "ircryptopay";
 export type MethodOption = { id: PaymentMethod; title: string; description: string; available: boolean; setupHint?: string };
@@ -29,7 +30,7 @@ export function availableMethod(method: PaymentMethod): boolean {
         process.env.NOWPAYMENTS_API_KEY?.trim() &&
         process.env.NOWPAYMENTS_IPN_SECRET?.trim() && usdQuoteRate());
     case "ircryptopay": return Boolean(process.env.IRCRYPTO_KEY?.trim() && process.env.IRCRYPTO_WEBHOOK_SECRET?.trim());
-    case "balepay": return false; // No verified independent merchant API contract.
+    case "balepay": return isBaleWalletConfigured();
   }
 }
 
@@ -39,8 +40,9 @@ export function paymentMethods(): MethodOption[] {
       available: availableMethod("zarinpal"), setupHint: "ZARINPAL_MERCHANT_ID" },
     { id: "aqayepardakht", title: "آقای پرداخت", description: "پرداخت اینترنتی ریالی",
       available: availableMethod("aqayepardakht"), setupHint: "AQAYEPARDAKHT_PIN" },
-    { id: "balepay", title: "بله‌پی", description: "در انتظار مستندات معتبر پذیرندگی",
-      available: false, setupHint: "نیازمند مستندات رسمی API بله‌پی" },
+    { id: "balepay", title: "بله‌پی", description: "پرداخت کیف پول بله از طریق مینی‌اپ فروشگاه",
+      available: availableMethod("balepay"),
+      setupHint: "BALE_BOT_TOKEN + BALE_WALLET_PROVIDER_TOKEN + BALE_BOT_USERNAME + BALE_WEBHOOK_SECRET + BALE_MINIAPP_READY + BALE_WEBHOOK_READY" },
     { id: "ircryptopay", title: "پرداخت رمزارزی ایرانی", description: "پرداخت رمزارزی با فاکتور ریالی از طریق IRCryptoPay",
       available: availableMethod("ircryptopay"), setupHint: "IRCRYPTO_KEY + IRCRYPTO_WEBHOOK_SECRET" },
     { id: "nowpayments", title: "پرداخت رمزارزی بین‌المللی", description: "صورتحساب رمزارزی از طریق NOWPayments",
@@ -90,6 +92,12 @@ export async function startPayment(input: {
       callbackUrl: baseUrl + "/payment/verify", mobile: input.mobile });
     if ("error" in result) return { ok: false, error: "خطا در ثبت درخواست زرین‌پال" };
     return { ok: true, url: result.paymentUrl, authority: result.authority };
+  }
+  if (method === "balepay") {
+    const url = baleMiniAppUrl(orderId);
+    if (!url) return { ok: false, error: "اتصال مینی‌اپ کیف پول بله تکمیل نشده است" };
+    // The actual invoice is created INSIDE Bale's verified miniapp session.
+    return { ok: true, url, authority: "bale:" + orderId };
   }
   if (method === "aqayepardakht") {
     const response = await postJson("https://panel.aqayepardakht.ir/api/v2/create", {
@@ -144,7 +152,7 @@ export async function startPayment(input: {
     }
     return { ok: true, authority: id, usdAmount: usd, url: invoiceUrl };
   }
-  return { ok: false, error: "برای بله‌پی هنوز API قابل تأیید موجود نیست" };
+  return { ok: false, error: "درگاه انتخاب‌شده پشتیبانی نمی‌شود" };
 }
 
 /** Payment confirmation always happens server-to-server, never from query flags. */
