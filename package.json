@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/apply-product-variants.mjs && prisma generate && next build",
+    "build": "prisma generate && next build",
+    "db:upgrade": "node scripts/apply-product-variants.mjs",
     "start": "next start",
     "lint": "eslint",
     "test": "tsx --test src/lib/product-import.test.ts src/lib/product-details.test.ts src/lib/product-search.test.ts",
