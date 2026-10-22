@@ -5,7 +5,7 @@ const envKeys: Record<string,string[]> = {
   aqayepardakht: ["AQAYEPARDAKHT_PIN"],
   balepay: ["مستندات API رسمی بله‌پی"],
   nowpayments: [
-    "NOWPAYMENTS_API_KEY", "NOWPAYMENTS_IPN_SECRET",
+    "NOWPAYMENTS_COMPLIANCE_APPROVED", "NOWPAYMENTS_API_KEY", "NOWPAYMENTS_IPN_SECRET",
     "CRYPTO_USD_TOMAN_RATE", "CRYPTO_RATE_VALID_UNTIL",
   ],
 };
@@ -47,7 +47,7 @@ export function AdminPaymentMethods({ methods }: { methods: MethodOption[] }) {
           بله‌پی به مستندات رسمی سازگار با حساب پذیرندهٔ تو نیاز دارد.
         </p>
         <p>
-          NOWPayments فقط با کلید API، IPN Secret و نرخ تبدیل تومان به دلار با زمان اعتبار محدود
+          طبق محدودیت‌های منتشرشدهٔ NOWPayments، خدمات آن برای برخی حوزه‌های قضایی از جمله ایران ممکن نیست. این اتصال تنها در صورت تأیید واقعی واجدشرایط‌بودن پذیرنده نزد سرویس‌دهنده و ثبت کلید API، IPN Secret و نرخ تبدیل تومان به دلار با زمان اعتبار محدود
           فعال می‌شود. سازگاری قانونی و امکان ارائهٔ خدمات به کشور و کسب‌وکار خودت را نیز از سرویس‌دهنده بررسی کن.
         </p>
       </div>
