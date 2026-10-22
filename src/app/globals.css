@@ -317,16 +317,85 @@ body,
 :root[data-theme="dark"] .home-hero-description {
   color: #f4ddd2;
 }
+/*
+ * Hero artwork edge feathering.
+ * The previous 5-6% linear falloff left a visible straight crop on desktops.
+ * Gradual alpha stops blend all four edges into the existing hero stage.
+ * Applied to the original light/dark WebPs, without affecting their content.
+ */
 .home-artwork {
-  /* Gently remove the square image edges so the scene blends with the page. */
   -webkit-mask-image:
-    linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%),
-    linear-gradient(to bottom, transparent 0%, black 5%, black 95%, transparent 100%);
+    linear-gradient(to right,
+      transparent 0%, rgba(0,0,0,.12) 3%, rgba(0,0,0,.43) 9%,
+      rgba(0,0,0,.78) 14%, #000 20%, #000 80%,
+      rgba(0,0,0,.78) 86%, rgba(0,0,0,.43) 91%,
+      rgba(0,0,0,.12) 97%, transparent 100%),
+    linear-gradient(to bottom,
+      transparent 0%, rgba(0,0,0,.18) 4%, rgba(0,0,0,.5) 10%,
+      rgba(0,0,0,.84) 15%, #000 21%, #000 79%,
+      rgba(0,0,0,.84) 85%, rgba(0,0,0,.5) 90%,
+      rgba(0,0,0,.18) 96%, transparent 100%);
   -webkit-mask-composite: source-in;
   mask-image:
-    linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%),
-    linear-gradient(to bottom, transparent 0%, black 5%, black 95%, transparent 100%);
+    linear-gradient(to right,
+      transparent 0%, rgba(0,0,0,.12) 3%, rgba(0,0,0,.43) 9%,
+      rgba(0,0,0,.78) 14%, #000 20%, #000 80%,
+      rgba(0,0,0,.78) 86%, rgba(0,0,0,.43) 91%,
+      rgba(0,0,0,.12) 97%, transparent 100%),
+    linear-gradient(to bottom,
+      transparent 0%, rgba(0,0,0,.18) 4%, rgba(0,0,0,.5) 10%,
+      rgba(0,0,0,.84) 15%, #000 21%, #000 79%,
+      rgba(0,0,0,.84) 85%, rgba(0,0,0,.5) 90%,
+      rgba(0,0,0,.18) 96%, transparent 100%);
   mask-composite: intersect;
+}
+
+/* Tablets: retain the full composition with a balanced softer edge. */
+@media (max-width: 1099px) {
+  .home-artwork {
+    -webkit-mask-image:
+      linear-gradient(to right,
+        transparent 0%, rgba(0,0,0,.28) 4%, rgba(0,0,0,.66) 9%,
+        #000 16%, #000 84%,
+        rgba(0,0,0,.66) 91%, rgba(0,0,0,.28) 96%, transparent 100%),
+      linear-gradient(to bottom,
+        transparent 0%, rgba(0,0,0,.3) 5%, rgba(0,0,0,.7) 11%,
+        #000 17%, #000 83%,
+        rgba(0,0,0,.7) 89%, rgba(0,0,0,.3) 95%, transparent 100%);
+    mask-image:
+      linear-gradient(to right,
+        transparent 0%, rgba(0,0,0,.28) 4%, rgba(0,0,0,.66) 9%,
+        #000 16%, #000 84%,
+        rgba(0,0,0,.66) 91%, rgba(0,0,0,.28) 96%, transparent 100%),
+      linear-gradient(to bottom,
+        transparent 0%, rgba(0,0,0,.3) 5%, rgba(0,0,0,.7) 11%,
+        #000 17%, #000 83%,
+        rgba(0,0,0,.7) 89%, rgba(0,0,0,.3) 95%, transparent 100%);
+  }
+}
+
+/* Phones already blended reasonably well: expand the fade a little. */
+@media (max-width: 640px) {
+  .home-artwork {
+    -webkit-mask-image:
+      linear-gradient(to right,
+        transparent 0%, rgba(0,0,0,.31) 3%, rgba(0,0,0,.73) 8%,
+        #000 13%, #000 87%,
+        rgba(0,0,0,.73) 92%, rgba(0,0,0,.31) 97%, transparent 100%),
+      linear-gradient(to bottom,
+        transparent 0%, rgba(0,0,0,.3) 4%, rgba(0,0,0,.7) 9%,
+        #000 15%, #000 85%,
+        rgba(0,0,0,.7) 91%, rgba(0,0,0,.3) 96%, transparent 100%);
+    mask-image:
+      linear-gradient(to right,
+        transparent 0%, rgba(0,0,0,.31) 3%, rgba(0,0,0,.73) 8%,
+        #000 13%, #000 87%,
+        rgba(0,0,0,.73) 92%, rgba(0,0,0,.31) 97%, transparent 100%),
+      linear-gradient(to bottom,
+        transparent 0%, rgba(0,0,0,.3) 4%, rgba(0,0,0,.7) 9%,
+        #000 15%, #000 85%,
+        rgba(0,0,0,.7) 91%, rgba(0,0,0,.3) 96%, transparent 100%);
+  }
 }
 .home-kicker {
   background: rgba(255, 244, 229, .72);
