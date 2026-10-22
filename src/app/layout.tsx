@@ -3,6 +3,7 @@ import Script from "next/script";
 import { Lalezar, Vazirmatn } from "next/font/google";
 import { CartProvider } from "@/context/cart";
 import { Header } from "@/components/Header";
+import { PendingCartRestore } from "@/components/customer/PendingCartRestore";
 import { Footer } from "@/components/Footer";
 import { getSiteUrl } from "@/lib/site-url";
 import "./globals.css";
@@ -51,6 +52,7 @@ export default function RootLayout({
       </head>
       <body className="site-bg relative flex min-h-full flex-col antialiased">
         <CartProvider>
+          <PendingCartRestore />
           <Header />
           <main className="relative z-10 flex-1">{children}</main>
           <Footer />

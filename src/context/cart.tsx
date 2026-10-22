@@ -50,6 +50,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [bump, setBump] = useState(false);
 
   useEffect(() => {
+    const clearOnLogout = () => {
+      setItems([]);
+      localStorage.removeItem(STORAGE_KEY);
+      sessionStorage.removeItem("noghlijan_pending_add_to_cart");
+    };
+    window.addEventListener("customer-signed-out", clearOnLogout);
+    return () => window.removeEventListener("customer-signed-out", clearOnLogout);
+  }, []);
+
+  useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   }, [items]);
 
