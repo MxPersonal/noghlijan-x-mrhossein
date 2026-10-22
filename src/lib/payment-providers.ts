@@ -2,7 +2,7 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import { isZarinpalConfigured, requestPayment as requestZarinpal } from "@/lib/zarinpal";
 
-export type PaymentMethod = "zarinpal" | "aqayepardakht" | "balepay" | "nowpayments";
+export type PaymentMethod = "zarinpal" | "aqayepardakht" | "balepay" | "nowpayments" | "ircryptopay";
 export type MethodOption = { id: PaymentMethod; title: string; description: string; available: boolean; setupHint?: string };
 
 export function usdQuoteRate(): number | null {
@@ -28,6 +28,7 @@ export function availableMethod(method: PaymentMethod): boolean {
       return Boolean(process.env.NOWPAYMENTS_COMPLIANCE_APPROVED === "true" &&
         process.env.NOWPAYMENTS_API_KEY?.trim() &&
         process.env.NOWPAYMENTS_IPN_SECRET?.trim() && usdQuoteRate());
+    case "ircryptopay": return Boolean(process.env.IRCRYPTO_KEY?.trim() && process.env.IRCRYPTO_WEBHOOK_SECRET?.trim());
     case "balepay": return false; // No verified independent merchant API contract.
   }
 }
@@ -40,7 +41,9 @@ export function paymentMethods(): MethodOption[] {
       available: availableMethod("aqayepardakht"), setupHint: "AQAYEPARDAKHT_PIN" },
     { id: "balepay", title: "بله‌پی", description: "در انتظار مستندات معتبر پذیرندگی",
       available: false, setupHint: "نیازمند مستندات رسمی API بله‌پی" },
-    { id: "nowpayments", title: "پرداخت رمزارزی", description: "صورتحساب رمزارزی از طریق NOWPayments",
+    { id: "ircryptopay", title: "پرداخت رمزارزی ایرانی", description: "پرداخت رمزارزی با فاکتور ریالی از طریق IRCryptoPay",
+      available: availableMethod("ircryptopay"), setupHint: "IRCRYPTO_KEY + IRCRYPTO_WEBHOOK_SECRET" },
+    { id: "nowpayments", title: "پرداخت رمزارزی بین‌المللی", description: "صورتحساب رمزارزی از طریق NOWPayments",
       available: availableMethod("nowpayments"),
       setupHint: "Eligibility + NOWPAYMENTS_API_KEY + NOWPAYMENTS_IPN_SECRET + CRYPTO_USD_TOMAN_RATE + CRYPTO_RATE_VALID_UNTIL" },
   ];
@@ -104,6 +107,23 @@ export async function startPayment(input: {
     return { ok: true, authority: transid,
       url: "https://panel.aqayepardakht.ir/startpay/" + encodeURIComponent(transid) };
   }
+  if (method === "ircryptopay") {
+    const response = await postJson("https://api.ircryptopay.online/v1/invoices", {
+      amount_mode: "fixed", amount: (totalToman * 10).toFixed(2),
+      currency: "IRR", external_ref: orderId,
+      description: "سفارش نقلی‌جان " + orderId,
+      redirect_url: baseUrl + "/payment/result?orderId=" + encodeURIComponent(orderId),
+      expires_in: 86400,
+    }, { Authorization: "Bearer " + process.env.IRCRYPTO_KEY });
+    const invoice = obj(obj(response.data).invoice);
+    const url = typeof invoice.payment_url === "string" ? invoice.payment_url : "";
+    const id = typeof invoice.id === "string" ? invoice.id : "";
+    if (!response.ok || invoice.external_ref !== orderId || invoice.price_currency !== "IRR" ||
+        !/^[0-9a-f-]{36}$/i.test(id) || !secureHttps(url, ["pay.ircryptopay.online"])) {
+      return { ok: false, error: "صورتحساب رمزارزی ریالی ساخته نشد" };
+    }
+    return { ok: true, authority: id, url };
+  }
   if (method === "nowpayments") {
     const rate = usdQuoteRate();
     if (!rate) return { ok: false, error: "نرخ معتبر تبدیل ارز ثبت نشده است" };
@@ -155,6 +175,29 @@ export async function verifyNowPayment(input: { paymentId: string; orderId: stri
         String(data.price_currency).toLowerCase() === "usd" && Number.isFinite(price) &&
         Math.abs(price - input.expectedUsd) < .011,
       refId: String(data.payment_id ?? ""),
+    };
+  } finally { clearTimeout(timeout); }
+}
+
+/** Confirm the Iranian crypto invoice using the provider's authenticated API and exact IRR amount. */
+export async function verifyIrCrypto(input: { invoiceId: string; orderId: string; totalToman: number }) {
+  const key = process.env.IRCRYPTO_KEY;
+  if (!key || !/^[0-9a-f-]{36}$/i.test(input.invoiceId)) return { ok: false, refId: "" };
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10_000);
+  try {
+    const response = await fetch("https://api.ircryptopay.online/v1/invoices/" +
+      encodeURIComponent(input.invoiceId), {
+      headers: { Authorization: "Bearer " + key }, cache: "no-store", signal: controller.signal,
+    });
+    const data = obj(response.ok ? await response.json() as unknown : null);
+    const invoice = obj(data.invoice);
+    const price = Number(invoice.price_amount);
+    return {
+      ok: response.ok && invoice.status === "paid" && invoice.external_ref === input.orderId &&
+        invoice.id === input.invoiceId && invoice.price_currency === "IRR" &&
+        Number.isFinite(price) && Math.abs(price - input.totalToman * 10) < .001,
+      refId: input.invoiceId,
     };
   } finally { clearTimeout(timeout); }
 }
