@@ -23,7 +23,10 @@ export function availableMethod(method: PaymentMethod): boolean {
     case "zarinpal": return isZarinpalConfigured();
     case "aqayepardakht": return Boolean(process.env.AQAYEPARDAKHT_PIN?.trim());
     case "nowpayments":
-      return Boolean(process.env.NOWPAYMENTS_API_KEY?.trim() &&
+      // Merchant must establish that NOWPayments is available in their actual jurisdiction.
+      // Their published terms exclude some jurisdictions, including Iran.
+      return Boolean(process.env.NOWPAYMENTS_COMPLIANCE_APPROVED === "true" &&
+        process.env.NOWPAYMENTS_API_KEY?.trim() &&
         process.env.NOWPAYMENTS_IPN_SECRET?.trim() && usdQuoteRate());
     case "balepay": return false; // No verified independent merchant API contract.
   }
@@ -39,7 +42,7 @@ export function paymentMethods(): MethodOption[] {
       available: false, setupHint: "نیازمند مستندات رسمی API بله‌پی" },
     { id: "nowpayments", title: "پرداخت رمزارزی", description: "صورتحساب رمزارزی از طریق NOWPayments",
       available: availableMethod("nowpayments"),
-      setupHint: "NOWPAYMENTS_API_KEY + NOWPAYMENTS_IPN_SECRET + CRYPTO_USD_TOMAN_RATE + CRYPTO_RATE_VALID_UNTIL" },
+      setupHint: "Eligibility + NOWPAYMENTS_API_KEY + NOWPAYMENTS_IPN_SECRET + CRYPTO_USD_TOMAN_RATE + CRYPTO_RATE_VALID_UNTIL" },
   ];
 }
 
