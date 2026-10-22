@@ -165,6 +165,7 @@ export async function finalizeOrder(orderId: string, provider: PaymentMethod, re
   if (!order || order.paymentProvider !== provider || !reference || reference.length > 160) return false;
   if (order.status === "PAID" || order.status === "SHIPPED") return true;
   if (order.status !== "PENDING") return false;
+  let processed = false;
   try {
     await prisma.$transaction(async tx => {
       const claimed = await tx.order.updateMany({
@@ -172,6 +173,7 @@ export async function finalizeOrder(orderId: string, provider: PaymentMethod, re
         data: { status: "PAID", refId: reference, paymentVerifiedAt: new Date(), paymentReviewReason: null },
       });
       if (!claimed.count) return;
+      processed = true;
       for (const item of order.items) {
         const product = await tx.product.updateMany({
           where: { id: item.productId, stock: { gte: item.quantity } },
@@ -187,7 +189,9 @@ export async function finalizeOrder(orderId: string, provider: PaymentMethod, re
         }
       }
     });
-    return true;
+    if (processed) return true;
+    const latest = await prisma.order.findUnique({ where: { id: orderId }, select: { status: true } });
+    return latest?.status === "PAID" || latest?.status === "SHIPPED";
   } catch (error) {
     console.error("Verified payment needs stock reconciliation", orderId, provider, error);
     await prisma.order.updateMany({ where: { id: orderId, status: "PENDING" },

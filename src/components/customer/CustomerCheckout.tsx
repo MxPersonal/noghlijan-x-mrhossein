@@ -10,7 +10,7 @@ import type { MethodOption, PaymentMethod } from "@/lib/payment-providers";
 type Customer = { fullName:string; mobile:string; address:string|null; postalCode:string|null; phoneVerified:boolean };
 
 export function CustomerCheckout({ customer, methods }: { customer: Customer; methods: MethodOption[] }) {
-  const { items, total, clearCart } = useCart();
+  const { items, total } = useCart();
   const router=useRouter();
   const [address,setAddress]=useState(customer.address ?? "");
   const [postalCode,setPostalCode]=useState(customer.postalCode ?? "");
@@ -41,7 +41,8 @@ export function CustomerCheckout({ customer, methods }: { customer: Customer; me
       const data=await res.json() as {error?:string;paymentUrl?:string;orderId?:string;demo?:boolean};
       if (!res.ok) throw Error(data.error || "ثبت سفارش ناموفق بود");
       if (data.paymentUrl) {
-        clearCart();
+        // Keep the cart until payment has been confirmed by the gateway.
+        // A cancelled payment must not silently lose customer selections.
         window.location.assign(data.paymentUrl);
         return;
       }
