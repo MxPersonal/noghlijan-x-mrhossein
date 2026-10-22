@@ -4,6 +4,7 @@ const envKeys: Record<string,string[]> = {
   zarinpal: ["ZARINPAL_MERCHANT_ID"],
   aqayepardakht: ["AQAYEPARDAKHT_PIN"],
   balepay: ["مستندات API رسمی بله‌پی"],
+  ircryptopay: ["IRCRYPTO_KEY", "IRCRYPTO_WEBHOOK_SECRET"],
   nowpayments: [
     "NOWPAYMENTS_COMPLIANCE_APPROVED", "NOWPAYMENTS_API_KEY", "NOWPAYMENTS_IPN_SECRET",
     "CRYPTO_USD_TOMAN_RATE", "CRYPTO_RATE_VALID_UNTIL",
@@ -47,6 +48,8 @@ export function AdminPaymentMethods({ methods }: { methods: MethodOption[] }) {
           بله‌پی به مستندات رسمی سازگار با حساب پذیرندهٔ تو نیاز دارد.
         </p>
         <p>
+          برای درگاه رمزارزی ایرانی، دریافت فاکتور به ریال و وب‌هوک امن از API سرویس «آی‌آر کریپتو» پیش‌بینی شده است.
+          پیش از فعال‌سازی، اعتبار و شرایط قانونی پذیرندگی این سرویس را مستقل بررسی کن.
           طبق محدودیت‌های منتشرشدهٔ NOWPayments، خدمات آن برای برخی حوزه‌های قضایی از جمله ایران ممکن نیست. این اتصال تنها در صورت تأیید واقعی واجدشرایط‌بودن پذیرنده نزد سرویس‌دهنده و ثبت کلید API، IPN Secret و نرخ تبدیل تومان به دلار با زمان اعتبار محدود
           فعال می‌شود. سازگاری قانونی و امکان ارائهٔ خدمات به کشور و کسب‌وکار خودت را نیز از سرویس‌دهنده بررسی کن.
         </p>

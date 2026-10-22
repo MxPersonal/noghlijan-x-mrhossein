@@ -126,7 +126,7 @@ export function AdminOrders({ initial }: { initial: Order[] }) {
                   <div>
                     <span className="admin-order-small-label">روش پرداخت</span>
                     <p>{({ zarinpal: "زرین‌پال", aqayepardakht: "آقای پرداخت",
-                      balepay: "بله‌پی", nowpayments: "رمزارز" } as Record<string, string>)[order.paymentProvider ?? ""] ?? "قدیمی / نامشخص"}</p>
+                      balepay: "بله‌پی", nowpayments: "رمزارز بین‌المللی", ircryptopay: "رمزارز ریالی" } as Record<string, string>)[order.paymentProvider ?? ""] ?? "قدیمی / نامشخص"}</p>
                     {order.paymentReviewReason && <p className="admin-order-payment-alert">{order.paymentReviewReason}</p>}
                   </div>
                   <div>
