@@ -40,7 +40,12 @@ export function CustomerCheckout({ customer, methods }: { customer: Customer; me
       });
       const data=await res.json() as {error?:string;paymentUrl?:string;orderId?:string;demo?:boolean};
       if (!res.ok) throw Error(data.error || "ثبت سفارش ناموفق بود");
-      if (data.paymentUrl) {
+      if (data.paymentUrl && data.orderId) {
+        sessionStorage.setItem("noghlijan_pending_checkout", JSON.stringify({
+          orderId: data.orderId,
+          lines: items.map(item => ({ productId: item.productId,
+            variantId: item.variantId, quantity: item.quantity })),
+        }));
         // Keep the cart until payment has been confirmed by the gateway.
         // A cancelled payment must not silently lose customer selections.
         window.location.assign(data.paymentUrl);

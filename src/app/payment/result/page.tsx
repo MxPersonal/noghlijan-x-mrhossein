@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getCustomer } from "@/lib/customer-auth";
 import { prisma } from "@/lib/prisma";
 import { formatPrice } from "@/lib/format";
+import { PaymentCartReconciler } from "@/components/customer/PaymentCartReconciler";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,7 @@ export default async function PaymentResult({
   const paid = order && ["PAID", "SHIPPED"].includes(order.status);
   return (
     <div className="glass-surface mx-auto my-16 max-w-lg rounded-3xl px-6 py-12 text-center">
+      {paid && order && <PaymentCartReconciler orderId={order.id} />}
       <span className="text-5xl text-teal">{paid ? "✓" : "◷"}</span>
       <h1 className="mt-5 font-display text-4xl text-ink">
         {paid ? "پرداخت تأیید شد" : order ? "در انتظار تأیید درگاه" : "سفارشی یافت نشد"}

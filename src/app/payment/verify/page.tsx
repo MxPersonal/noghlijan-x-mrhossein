@@ -4,6 +4,7 @@ import { getCustomer } from "@/lib/customer-auth";
 import { verifyPayment } from "@/lib/zarinpal";
 import { finalizeOrder } from "@/lib/payment-providers";
 import { formatPrice } from "@/lib/format";
+import { PaymentCartReconciler } from "@/components/customer/PaymentCartReconciler";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +22,7 @@ export default async function PaymentVerifyPage({
   });
   if (!order) return <Result title="سفارش پیدا نشد"
     detail="پرداختی با این مشخصات در حساب شما ثبت نشده است." />;
-  if (order.status === "PAID" || order.status === "SHIPPED") return <Result ok title="پرداخت تأیید شده"
+  if (order.status === "PAID" || order.status === "SHIPPED") return <Result ok orderId={order.id} title="پرداخت تأیید شده"
     detail={"شناسهٔ پیگیری: " + (order.refId ?? "ثبت شده")} amount={order.total} />;
   if (order.status !== "PENDING") return <Result title="درخواست پرداخت ناموفق یا منقضی است"
     detail="می‌توانید وضعیت سفارش را در حساب خود ببینید." />;
@@ -34,7 +35,7 @@ export default async function PaymentVerifyPage({
       detail="تا زمانی که پاسخ معتبر درگاه دریافت نشود، سفارش پرداخت‌شده محسوب نمی‌شود." />;
     const finalized = await finalizeOrder(order.id, "zarinpal", verified.refId);
     return finalized
-      ? <Result ok title="پرداخت موفق" detail={"کد پیگیری: " + verified.refId} amount={order.total} />
+      ? <Result ok orderId={order.id} title="پرداخت موفق" detail={"کد پیگیری: " + verified.refId} amount={order.total} />
       : <Result title="پرداخت نیازمند بررسی است" detail="پرداخت تأیید شده، اما ثبت نهایی موجودی نیازمند بررسی پشتیبانی است. لطفاً دوباره پرداخت نکنید." />;
   } catch (error) {
     console.error("ZarinPal verification error", error);
@@ -43,10 +44,11 @@ export default async function PaymentVerifyPage({
   }
 }
 
-function Result({ title, detail, ok = false, amount, href = "/account" }:
-  { title: string; detail: string; ok?: boolean; amount?: number; href?: string }) {
+function Result({ title, detail, ok = false, amount, orderId, href = "/account" }:
+  { title: string; detail: string; ok?: boolean; amount?: number; orderId?: string; href?: string }) {
   return (
     <div className="glass-surface mx-auto my-16 max-w-lg rounded-3xl px-6 py-12 text-center sm:px-10">
+      {ok && orderId && <PaymentCartReconciler orderId={orderId} />}
       <div className={"mx-auto mb-6 grid size-16 place-items-center rounded-full text-3xl text-white " +
         (ok ? "bg-teal" : "bg-peach")}>{ok ? "✓" : "!"}</div>
       <h1 className="font-display text-3xl text-ink">{title}</h1>
