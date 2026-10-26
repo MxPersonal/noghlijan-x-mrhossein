@@ -318,109 +318,38 @@ body,
   color: #f4ddd2;
 }
 /*
- * Hero image fade (two independent masks).
- * Horizontal feathering is applied to the art WRAPPER, while the existing
- * vertical feathering stays on each actual image. This avoids inconsistent
- * multi-layer mask-composite rendering between Chromium/WebKit/Firefox.
- * Both light and dark artwork automatically share the same fade.
+ * True AI outpainting: source images are preserved in the east/right segment
+ * of a 3200x1800 panorama. The new space on the left is generated scenery.
+ * No gradient masking, blurring, mirroring or stretching of the original.
  */
-.home-scene .home-hero-art {
-  -webkit-mask-image: linear-gradient(to right,
-    transparent 0%,
-    rgba(0, 0, 0, .12) 5%,
-    rgba(0, 0, 0, .38) 11%,
-    rgba(0, 0, 0, .68) 17%,
-    rgba(0, 0, 0, .9) 23%,
-    #000 28%,
-    #000 72%,
-    rgba(0, 0, 0, .9) 77%,
-    rgba(0, 0, 0, .68) 83%,
-    rgba(0, 0, 0, .38) 89%,
-    rgba(0, 0, 0, .12) 95%,
-    transparent 100%
-  );
-  mask-image: linear-gradient(to right,
-    transparent 0%,
-    rgba(0, 0, 0, .12) 5%,
-    rgba(0, 0, 0, .38) 11%,
-    rgba(0, 0, 0, .68) 17%,
-    rgba(0, 0, 0, .9) 23%,
-    #000 28%,
-    #000 72%,
-    rgba(0, 0, 0, .9) 77%,
-    rgba(0, 0, 0, .68) 83%,
-    rgba(0, 0, 0, .38) 89%,
-    rgba(0, 0, 0, .12) 95%,
-    transparent 100%
-  );
+.home-scene {
+  background-color: #d8b497;
+  background-image: url("https://res.cloudinary.com/xpersonalx/image/upload/b_gen_fill,c_pad,g_east,w_3200,h_1800/v1793008919/noghlijan/hero-source-light-for-outpaint.webp");
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: cover;
 }
-.home-scene .home-artwork {
-  /* Keep the top/bottom fade exactly as approved previously. */
-  -webkit-mask-image: linear-gradient(to bottom,
-    transparent 0%, rgba(0,0,0,.18) 4%, rgba(0,0,0,.5) 10%,
-    rgba(0,0,0,.84) 15%, #000 21%, #000 79%,
-    rgba(0,0,0,.84) 85%, rgba(0,0,0,.5) 90%,
-    rgba(0,0,0,.18) 96%, transparent 100%
-  );
-  mask-image: linear-gradient(to bottom,
-    transparent 0%, rgba(0,0,0,.18) 4%, rgba(0,0,0,.5) 10%,
-    rgba(0,0,0,.84) 15%, #000 21%, #000 79%,
-    rgba(0,0,0,.84) 85%, rgba(0,0,0,.5) 90%,
-    rgba(0,0,0,.18) 96%, transparent 100%
-  );
+:root[data-theme="dark"] .home-scene {
+  background-color: #251f28;
+  background-image: url("https://res.cloudinary.com/xpersonalx/image/upload/b_gen_fill,c_pad,g_east,w_3200,h_1800/v1793008974/noghlijan/hero-source-dark-for-outpaint.webp");
+}
+/* Desktop: image is already part of the full-bleed panorama, so don't
+   paint a duplicate on top. Keep media node for layout and GSAP selectors. */
+@media (min-width: 1100px) {
+  .home-scene .home-hero-media .home-artwork { visibility: hidden; }
 }
 @media (max-width: 1099px) {
-  .home-scene .home-hero-art {
-    -webkit-mask-image: linear-gradient(to right,
-      transparent 0%, rgba(0,0,0,.2) 4%,
-      rgba(0,0,0,.55) 11%, rgba(0,0,0,.85) 18%,
-      #000 23%, #000 77%,
-      rgba(0,0,0,.85) 82%, rgba(0,0,0,.55) 89%,
-      rgba(0,0,0,.2) 96%, transparent 100%);
-    mask-image: linear-gradient(to right,
-      transparent 0%, rgba(0,0,0,.2) 4%,
-      rgba(0,0,0,.55) 11%, rgba(0,0,0,.85) 18%,
-      #000 23%, #000 77%,
-      rgba(0,0,0,.85) 82%, rgba(0,0,0,.55) 89%,
-      rgba(0,0,0,.2) 96%, transparent 100%);
-  }
-  .home-scene .home-artwork {
-    -webkit-mask-image: linear-gradient(to bottom,
-      transparent 0%, rgba(0,0,0,.3) 5%, rgba(0,0,0,.7) 11%,
-      #000 17%, #000 83%,
-      rgba(0,0,0,.7) 89%, rgba(0,0,0,.3) 95%, transparent 100%);
-    mask-image: linear-gradient(to bottom,
-      transparent 0%, rgba(0,0,0,.3) 5%, rgba(0,0,0,.7) 11%,
-      #000 17%, #000 83%,
-      rgba(0,0,0,.7) 89%, rgba(0,0,0,.3) 95%, transparent 100%);
-  }
+  /* On tall layouts, retain the uncropped original image above the copy.
+     The generated scenery still fills the entire hero behind it. */
+  .home-scene { background-position: 72% center; background-size: cover; }
 }
-/* Mobile: preserve the existing vertical fade; slightly deepen the sides. */
 @media (max-width: 640px) {
-  .home-scene .home-hero-art {
-    -webkit-mask-image: linear-gradient(to right,
-      transparent 0%, rgba(0,0,0,.28) 3%,
-      rgba(0,0,0,.68) 9%,
-      #000 17%, #000 83%,
-      rgba(0,0,0,.68) 91%, rgba(0,0,0,.28) 97%,
-      transparent 100%);
-    mask-image: linear-gradient(to right,
-      transparent 0%, rgba(0,0,0,.28) 3%,
-      rgba(0,0,0,.68) 9%,
-      #000 17%, #000 83%,
-      rgba(0,0,0,.68) 91%, rgba(0,0,0,.28) 97%,
-      transparent 100%);
-  }
-  .home-scene .home-artwork {
-    -webkit-mask-image: linear-gradient(to bottom,
-      transparent 0%, rgba(0,0,0,.3) 4%, rgba(0,0,0,.7) 9%,
-      #000 15%, #000 85%,
-      rgba(0,0,0,.7) 91%, rgba(0,0,0,.3) 96%, transparent 100%);
-    mask-image: linear-gradient(to bottom,
-      transparent 0%, rgba(0,0,0,.3) 4%, rgba(0,0,0,.7) 9%,
-      #000 15%, #000 85%,
-      rgba(0,0,0,.7) 91%, rgba(0,0,0,.3) 96%, transparent 100%);
-  }
+  .home-scene { background-position: 72% center; }
+}
+.home-scene .home-hero-art,
+.home-scene .home-artwork {
+  -webkit-mask-image: none;
+  mask-image: none;
 }
 
 .home-kicker {
