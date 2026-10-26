@@ -317,35 +317,7 @@ body,
 :root[data-theme="dark"] .home-hero-description {
   color: #f4ddd2;
 }
-/*
- * True AI outpainting: source images are preserved in the east/right segment
- * of a 3200x1800 panorama. The new space on the left is generated scenery.
- * No gradient masking, blurring, mirroring or stretching of the original.
- */
-.home-scene {
-  background-color: #d8b497;
-  background-image: url("https://res.cloudinary.com/xpersonalx/image/upload/b_gen_fill,c_pad,g_east,w_3200,h_1800/v1793008919/noghlijan/hero-source-light-for-outpaint.webp");
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-size: cover;
-}
-:root[data-theme="dark"] .home-scene {
-  background-color: #251f28;
-  background-image: url("https://res.cloudinary.com/xpersonalx/image/upload/b_gen_fill,c_pad,g_east,w_3200,h_1800/v1793008974/noghlijan/hero-source-dark-for-outpaint.webp");
-}
-/* Desktop: image is already part of the full-bleed panorama, so don't
-   paint a duplicate on top. Keep media node for layout and GSAP selectors. */
-@media (min-width: 1100px) {
-  .home-scene .home-hero-media .home-artwork { visibility: hidden; }
-}
-@media (max-width: 1099px) {
-  /* On tall layouts, retain the uncropped original image above the copy.
-     The generated scenery still fills the entire hero behind it. */
-  .home-scene { background-position: 72% center; background-size: cover; }
-}
-@media (max-width: 640px) {
-  .home-scene { background-position: 72% center; }
-}
+/* The hero scene is one extended photograph, not an edge-faded card. */
 .home-scene .home-hero-art,
 .home-scene .home-artwork {
   -webkit-mask-image: none;
@@ -2305,16 +2277,46 @@ body,
   .customer-payment-option { transition:none!important; }
 }
 
-/* Final cascade: the full-bleed outpaint MUST override earlier editorial
-   .home-scene shorthand backgrounds declared farther down this stylesheet. */
+/*
+ * Full-bleed generative expansion, stored locally with the site.
+ * The LEFT segment of the landscape output retains the original square hero
+ * composition. The RIGHT side contains context-aware continuation (not blur,
+ * CSS gradient, mirroring, scaling of the source or a fade mask).
+ * A dedicated portrait outpaint extends the scene downward for mobile.
+ */
 .home-editorial .home-scene {
-  background-color: #d8b497;
-  background-image: url("https://res.cloudinary.com/xpersonalx/image/upload/b_gen_fill,c_pad,g_east,w_3200,h_1800/v1793008919/noghlijan/hero-source-light-for-outpaint.webp");
-  background-repeat: no-repeat;
-  background-position: center center;
+  background-color: #d5ae8d;
+  background-image: url("/images/noghlijan-extended-desktop-light.jpg");
+  background-position: left center;
   background-size: cover;
+  background-repeat: no-repeat;
 }
 :root[data-theme="dark"] .home-editorial .home-scene {
-  background-color: #251f28;
-  background-image: url("https://res.cloudinary.com/xpersonalx/image/upload/b_gen_fill,c_pad,g_east,w_3200,h_1800/v1793008974/noghlijan/hero-source-dark-for-outpaint.webp");
+  background-color: #181720;
+  background-image: url("/images/noghlijan-extended-desktop-dark.jpg");
+}
+.home-scene .home-hero-placeholder {
+  aspect-ratio: 1;
+  max-height: min(71svh, 690px);
+}
+/* Once media stacks above text, use a portrait outpaint of the same image.
+   Keeping the full image visible avoids cropping the artwork for tablets. */
+@media (max-width: 1099px) {
+  .home-editorial .home-scene {
+    background-image: url("/images/noghlijan-extended-mobile-light.jpg");
+    background-position: center top;
+    background-size: auto 100%;
+  }
+  :root[data-theme="dark"] .home-editorial .home-scene {
+    background-image: url("/images/noghlijan-extended-mobile-dark.jpg");
+  }
+  .home-scene .home-hero-placeholder {
+    max-height: min(60svh, 630px);
+  }
+}
+@media (max-width: 640px) {
+  .home-editorial .home-scene {
+    background-size: cover;
+    background-position: center top;
+  }
 }

@@ -6,9 +6,6 @@ import { HomeScrollExperience } from "@/components/HomeScrollExperience";
 
 export const dynamic = "force-dynamic";
 
-const HERO_LIGHT = "/images/noghlijan-hero-high-quality.webp";
-const HERO_DARK = "/images/noghlijan-hero-dark-8k.webp";
-
 const journeys = [
   { number: "۰۱", title: "سلیقه‌ش رو پیدا کن", text: "از بین لباس‌های دخترانه و پسرانه، به استایل موردعلاقهٔ کوچولوت برس.", tone: "rose" },
   { number: "۰۲", title: "جزئیات رو ببین", text: "تصویر، ردهٔ سنی، قیمت و مشخصات هر محصول رو یک‌جا بررسی کن.", tone: "butter" },
@@ -68,27 +65,10 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="home-hero-media" data-motion="visual">
-            <div className="home-hero-art" data-parallax>
-              <Image
-                src={HERO_LIGHT}
-                alt="دختر و پسربچه در پوشاک رنگارنگ نقلی‌جان با نمادهای ضمانت مرجوعی، تضمین کیفیت و خرید"
-                width={1536}
-                height={1536}
-                priority
-                className="home-artwork home-artwork--light"
-                sizes="(max-width: 1023px) 96vw, (max-width: 1440px) 57vw, 780px"
-              />
-              <Image
-                src={HERO_DARK}
-                alt="نسخهٔ شبانهٔ تصویر پوشاک بچه‌گانهٔ نقلی‌جان"
-                width={8192}
-                height={8192}
-                loading="lazy"
-                className="home-artwork home-artwork--dark"
-                sizes="(max-width: 1023px) 96vw, (max-width: 1440px) 57vw, 780px"
-              />
-            </div>
+          {/* The original composition is part of the seamless extended backdrop.
+              Preserve the media footprint/GSAP hooks without loading duplicate photos. */}
+          <div className="home-hero-media" data-motion="visual" aria-hidden="true">
+            <div className="home-hero-art home-hero-placeholder" data-parallax />
           </div>
           <span aria-hidden="true" className="home-scene-serial">01 / 04</span>
         </div>
