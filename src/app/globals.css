@@ -2304,3 +2304,17 @@ body,
 @media (prefers-reduced-motion:reduce) {
   .customer-payment-option { transition:none!important; }
 }
+
+/* Final cascade: the full-bleed outpaint MUST override earlier editorial
+   .home-scene shorthand backgrounds declared farther down this stylesheet. */
+.home-editorial .home-scene {
+  background-color: #d8b497;
+  background-image: url("https://res.cloudinary.com/xpersonalx/image/upload/b_gen_fill,c_pad,g_east,w_3200,h_1800/v1793008919/noghlijan/hero-source-light-for-outpaint.webp");
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+}
+:root[data-theme="dark"] .home-editorial .home-scene {
+  background-color: #251f28;
+  background-image: url("https://res.cloudinary.com/xpersonalx/image/upload/b_gen_fill,c_pad,g_east,w_3200,h_1800/v1793008974/noghlijan/hero-source-dark-for-outpaint.webp");
+}
