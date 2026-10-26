@@ -2278,45 +2278,43 @@ body,
 }
 
 /*
- * Full-bleed generative expansion, stored locally with the site.
- * The LEFT segment of the landscape output retains the original square hero
- * composition. The RIGHT side contains context-aware continuation (not blur,
- * CSS gradient, mirroring, scaling of the source or a fade mask).
- * A dedicated portrait outpaint extends the scene downward for mobile.
+ * Noghlijan hero: approved light/dark original artwork, full-stage outpaint.
+ * Exact composition (children/logo/quality icons) remains left in the image;
+ * CSS does not enlarge any foreground characters independently.
+ *
+ * Images stored in GitHub, so no runtime Cloudinary transformation or fade.
+ * ThemeToggle writes data-theme on <html>; selector changes the image instantly.
  */
 .home-editorial .home-scene {
-  background-color: #d5ae8d;
-  background-image: url("/images/noghlijan-extended-desktop-light.jpg");
-  background-position: left center;
-  background-size: cover;
+  background-color: #e2b598;
+  background-image: url("/images/noghlijan-hero-light-extended-2026.jpg");
   background-repeat: no-repeat;
+  background-size: cover;
+  background-position: left center;
 }
 :root[data-theme="dark"] .home-editorial .home-scene {
-  background-color: #181720;
-  background-image: url("/images/noghlijan-extended-desktop-dark.jpg");
+  background-color: #151b2b;
+  background-image: url("/images/noghlijan-hero-dark-extended-2026.jpg");
 }
 .home-scene .home-hero-placeholder {
   aspect-ratio: 1;
   max-height: min(71svh, 690px);
 }
-/* Once media stacks above text, use a portrait outpaint of the same image.
-   Keeping the full image visible avoids cropping the artwork for tablets. */
+/*
+ * On narrow devices, the same artwork was outpainted DOWNWARD,
+ * not cropped or stretched. Subjects/logo retain their positions and
+ * the natural continuation becomes the background under the hero copy.
+ */
 @media (max-width: 1099px) {
   .home-editorial .home-scene {
-    background-image: url("/images/noghlijan-extended-mobile-light.jpg");
-    background-position: center top;
-    background-size: auto 100%;
+    background-image: url("/images/noghlijan-hero-light-mobile-2026.jpg");
+    background-position: left top;
+    background-size: cover;
   }
   :root[data-theme="dark"] .home-editorial .home-scene {
-    background-image: url("/images/noghlijan-extended-mobile-dark.jpg");
+    background-image: url("/images/noghlijan-hero-dark-mobile-2026.jpg");
   }
   .home-scene .home-hero-placeholder {
     max-height: min(60svh, 630px);
-  }
-}
-@media (max-width: 640px) {
-  .home-editorial .home-scene {
-    background-size: cover;
-    background-position: center top;
   }
 }
