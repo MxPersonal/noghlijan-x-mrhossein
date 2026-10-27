@@ -165,6 +165,34 @@ These are **future or validation tasks**, not promises of features already relea
 
 See the repository's [LICENSE](LICENSE). Brand images, logos and product photos may have separate ownership/usage restrictions.
 
+## 🧪 Engineering & merchant readiness | کنترل کیفیت فروشگاه
+
+| Surface | Where to look | Verify before production |
+|:--|:--|:--|
+| Storefront and product pages | `src/app/` | Responsive product imagery, variants and RTL |
+| Product models / data | `prisma/schema.prisma`, `prisma/migrations/` | Schema consistency and migration safety |
+| Product search & imports | `src/lib/`, `src/app/api/admin/products/import/` | Validation, duplicate handling and search results |
+| Customer accounts | `src/app/api/customer/` | Access controls and account session behavior |
+| Orders and checkout | `src/app/api/checkout/`, `src/app/api/admin/orders/` | Price integrity and server-side validation |
+| Payment callbacks | `src/app/api/payment/`, `docs/BALE-PAY.md` | Signature checks, replay safety and reconciliation |
+| Editorial content | `src/app/api/admin/site-content/` | Updates reflected in both languages |
+
+~~~bash
+npm test
+npm run lint
+npm run build
+~~~
+
+### 🔒 Payment activation is not a UI toggle
+
+Each payment option requires a separate eligibility, merchant-account, callback/webhook and transaction test. Environment variables listed in [`.env.example`](.env.example) are *configuration slots*, not evidence that a provider is enabled. Never substitute a guessed exchange rate for `CRYPTO_USD_TOMAN_RATE`, and do not enable international crypto payment access without confirmation of account and jurisdiction eligibility.
+
+**Database safety:** review `DATABASE_URL`, Prisma migration history and backup strategy before production schema changes. Do not run `npm run db:reset` against valuable databases; it is destructive. Never expose payment secrets, admin credentials or customer authentication secrets in public `NEXT_PUBLIC_*` variables.
+
+### 📦 Contributor workflow
+
+Change product content and variant rules deliberately, keep bilingual storefront labels consistent, and test a complete guest-to-account-to-checkout journey for every major commerce update. GitHub commits on the connected production branch may initiate automatic Vercel deployment; verify the result rather than assuming every integration has succeeded.
+
 <div align="center">
 
 **نقلی‌جان · برای کوچولوهایی که دنیای بزرگی دارن.** 🌼
